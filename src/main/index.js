@@ -12,9 +12,6 @@ function createWindow() {
 		height: 670,
 		show: false,
 		resizable: true,
-		frame: false,
-		transparent: true,
-		backgroundColor: '#00000000',
 		autoHideMenuBar: true,
 		...(process.platform === 'linux' ? { icon } : {}),
 		webPreferences: {

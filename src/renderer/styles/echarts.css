@@ -1,0 +1,198 @@
+html, body {
+    width: 100%;
+}
+body {
+    background-color: #f5f5f5;
+    margin: 0;
+}
+
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+    background-color: #fff
+}
+
+::-webkit-scrollbar-track {
+    -webkit-box-shadow: inset 0 0 6px #fff;
+    border-radius: 10px;
+    background-color: #fff
+}
+
+::-webkit-scrollbar-thumb {
+    border-radius: 10px;
+    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.1);
+    background-color: rgba(144,147,153,.3)
+}
+
+.chart-wrap {
+    margin: 0 12px;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    height: calc(100% - 44px - 12px - 12px);
+    box-sizing: border-box;
+}
+.chart {
+    height: calc(100% - 100px);
+    width: 100%;
+    padding-bottom: 12px;
+    box-sizing: border-box;
+}
+.toolbar-chart {
+    width: 100%;
+    height: 50px;
+}
+
+.date-wrap {
+    position: relative;
+    display: flex;
+    width: 400px;
+    margin: 0 auto;
+    padding-top: 12px;
+    margin-bottom: 12px;
+}
+.date-picker.el-input__wrapper, .day-picker .el-input__wrapper {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+.date-picker .el-icon {
+    display: none;
+}
+.date-picker.el-date-editor.el-input__wrapper {
+    width: 100px!important;
+}
+
+.date-picker-popper .el-date-range-picker{
+    width: 416px;
+}
+.date-picker-popper .el-date-range-picker.has-sidebar{
+    width: 416px;
+}
+@media screen and (max-width: 544px) {
+    .date-picker.el-date-editor.el-input__wrapper {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .date-picker-popper {
+        right: 5px;
+    }
+    .date-picker-popper .el-date-range-picker {
+        width: 100%;
+    }
+    .date-picker-popper .el-date-range-picker.has-sidebar {
+        width: 100%;
+    }
+}
+.date-picker-popper .el-picker-panel__sidebar {
+    width: 63px;
+    transition: .2s all;
+}
+.detail-picker-popper .el-picker-panel__sidebar {
+    width: 70px;
+}
+.date-picker-popper .el-picker-panel__shortcut {
+    padding: 0 8px;
+}
+.date-picker-popper .el-date-range-picker .el-picker-panel__body {
+    min-width: unset;
+}
+.date-picker-popper .el-picker-panel__sidebar+.el-picker-panel__body {
+    margin-left: 63px;
+}
+@media screen and (max-width: 460px) {    
+    .date-picker-popper .el-picker-panel__sidebar+.el-picker-panel__body {
+        margin-left: 0;
+    }
+    .date-picker-popper .el-picker-panel__sidebar {
+        display: flex;
+        top: 178px;
+        width: 100%;
+        bottom: unset;
+        padding: 4px;
+        border-radius: 0 0 4px 4px;
+        box-shadow: 0px 6px 6px rgba(0, 0, 0, 0.12);
+        border: 1px #e4e7ed;
+        border-top: 1px solid #e4e7ed;
+    }
+}
+.date-picker-popper .el-date-range-picker__content {
+    padding: 8px;
+}
+.date-picker-popper .el-picker-panel__shortcut {
+    white-space: nowrap;
+}
+.date-picker-popper .el-month-table td {
+    width: unset;
+}
+.date-picker-popper .el-month-table td div {
+    height: 30px;
+    padding: 0;
+    position: relative;
+}
+.date-picker-popper .el-month-table td .cell {
+    height: 100%;
+    width: 100%;
+    line-height: 30px;
+}
+.date-picker-popper .el-month-table td.in-range:first-of-type div {
+    border-radius: 10px 0 0 10px;
+}
+.date-picker-popper .el-month-table td.in-range:last-of-type div {
+    border-radius: 0 10px 10px 0;
+}
+.date-picker-popper .el-month-table td.start-date:first-of-type div {
+    border-radius: 24px 0 0 24px;
+}
+.date-picker-popper .el-month-table td.end-date:last-of-type div {
+    border-radius: 0 24px 24px 0;
+}
+.day-picker .el-input__inner {
+    padding-left: 43px;
+}
+
+.switch-radio {
+    flex-shrink: 0;
+}
+.switch-radio .el-radio-button:last-child .el-radio-button__inner {
+    border-radius: 0;
+    border-right: 0;
+}
+
+.type-switch.el-switch {
+    position: absolute;
+    right: -62px;
+}
+
+.toolbar-wrap {
+    display: flex;
+    align-items: center;
+}
+.toolbar-wrap span {
+    font-size: 12px;
+    flex-shrink: 0;
+    padding-left: 12px;
+}
+.toolbar-label {
+    font-size: 12px;
+    color: #333;
+    flex-shrink: 0;
+}
+
+.right-link {
+    position: fixed;
+    right: 12px;
+    top: 16px;
+}
+
+.left-link {
+    position: fixed;
+    left: 12px;
+    top: 16px;
+}
+
+.tooltip-wrap {
+    padding: 0!important;
+}
+#tooltipInner {
+    padding: 10px;
+}
