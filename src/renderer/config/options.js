@@ -1,3 +1,11 @@
+import {
+    createGroupObjByType,
+    reSortDataListByType,
+    countYearPriceInType,
+    transformGroupObj2DateArr,
+    filterDataListByDate,
+} from '@renderer/utils'
+
 document.addEventListener('wheel', (e) => {
     const scrollDom = document.getElementById('tooltipInner')
     if (scrollDom) {
@@ -25,7 +33,7 @@ document.addEventListener('keydown', (e) => {
 const screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth
 const fontSize = screenWidth < 544 ? 8 : 12
 
-export const getBarOption = (data = {}, chart) => {
+export const getBarOption = (data = {}, that) => {
     return {
         legend: {
             show: false,
@@ -45,11 +53,11 @@ export const getBarOption = (data = {}, chart) => {
             },
             formatter: (params, ticket, callback) => {
                 let str = '<div id="tooltipInner" style="max-height: 500px;overflow-y: auto;transition: scrollTop .3s ease;">'
-                if (!vueApp._instance.ctx.pickerType) { // 年
+                if (!that.pickerType) { // 年
                     const groupObj = {}
-                    Object.keys(Book.data.dateGroupYM).forEach(key => {
+                    Object.keys(that.billData.dateGroupYM).forEach(key => {
                         if (key.indexOf(params[0].name) > -1) {
-                            groupObj[key] = Book.data.dateGroupYM[key]
+                            groupObj[key] = that.billData.dateGroupYM[key]
                         }
                     })
 
@@ -60,8 +68,8 @@ export const getBarOption = (data = {}, chart) => {
                                     <div style="width: 100%;text-align: right;font-weight: bold;">${item.data}元</div>
                                 </div>`
                     })
-                } else if (vueApp._instance.ctx.pickerType === 1) {
-                    const dataList = Book.data.dateGroupYM[params[0].name]
+                } else if (that.pickerType === 1) {
+                    const dataList = that.billData.dateGroupYM[params[0].name]
                     const groupObj = createGroupObjByType(dataList)
 
                     const strArr = []
@@ -72,23 +80,23 @@ export const getBarOption = (data = {}, chart) => {
                             let cellTotal = 0
                             cellStr = `<div style="text-align: left;width: 100%;box-sizing: border-box;background: #f5f5f5;border-radius: 4px;padding: 4px 4px 4px 12px;margin-bottom: 4px;">`
                             item.list.forEach(cell => { // 类别明细
-                                if (!typeMap[type]) {
+                                if (!that.configData.typeMap[type]) {
                                     cellStr += `<div style="display: flex;font-size: 13px;">
-                                                <div style="padding-right: 24px;">-${cell.label || typeMap[cell.type] || item.label}</div>
-                                                <div style="width: 100%;text-align: right;font-weight: bold;">${getCellNum(cell, item).toFixed(2)}元</div>
+                                                <div style="padding-right: 24px;">-${cell.label || that.configData.typeMap[cell.type] || item.label}</div>
+                                                <div style="width: 100%;text-align: right;font-weight: bold;">${cell.num.toFixed(2)}元</div>
                                             </div>`
                                 }
-                                cellTotal += getCellNum(cell, item)
+                                cellTotal += cell.num
                             })
                             cellStr += '</div>'
                             
                             itemTotal += cellTotal
-                            if (typeMap[type]) cellStr = ''
+                            if (that.configData.typeMap[type]) cellStr = ''
                         })
                         strArr.push({
                             value: Number(itemTotal.toFixed(2)),
                             str: `<div style="display: flex;font-size: 14px;padding-right: 4px;">
-                                    <div style="padding-right: 24px;">${typeMap[type] || type}</div>
+                                    <div style="padding-right: 24px;">${that.configData.typeMap[type] || type}</div>
                                     <div style="width: 100%;text-align: right;font-weight: bold;">${Number(itemTotal.toFixed(2)).toFixed(2)}元</div>
                                 </div>
                                 ${cellStr}`,
@@ -100,9 +108,9 @@ export const getBarOption = (data = {}, chart) => {
                     str += strArr.map(item => item.str).join('')
                 } else { // 详
                     str = '<div id="tooltipInner" style="max-height: 500px;overflow-y: auto;transition: scrollTop .3s ease;padding-top: 6px;">'
-                    let dataList = filterDataListByDate(Book.data.dateGroupYM, vueApp._instance.ctx.detailRange)
+                    let dataList = filterDataListByDate(that.billData.dateGroupYM, that.detailRange)
                     dataList = reSortDataListByType(dataList)
-                    dataList = dataList.filter(item => item.type === reverseTypeMap[params[0].name])
+                    dataList = dataList.filter(item => item.type === that.configData.reverseTypeMap[params[0].name])
                     const yearPriceMap = countYearPriceInType(dataList)
 
                     dataList.forEach((item, index) => {
@@ -111,11 +119,11 @@ export const getBarOption = (data = {}, chart) => {
                         item.list.forEach(cell => {
                             if (item.list.length !== 1 || (item.list.length === 1 && cell.label && cell.label !== item.label)) {
                                 subStr += `<div style="display: flex;">
-                                            <div style="padding-right: 24px;">- ${cell.label || typeMap[cell.type] || item.label}</div>
-                                            <div style="width: 100%;text-align: right;font-weight: bold;">${Number(getCellNum(cell, item).toFixed(2)).toFixed(2)}元</div>
+                                            <div style="padding-right: 24px;">- ${cell.label || that.configData.typeMap[cell.type] || item.label}</div>
+                                            <div style="width: 100%;text-align: right;font-weight: bold;">${Number(cell.num.toFixed(2)).toFixed(2)}元</div>
                                         </div>`
                             }
-                            itemTotal += getCellNum(cell, item)
+                            itemTotal += cell.num
                         })
                         subStr += '</div>'
 
@@ -129,7 +137,7 @@ export const getBarOption = (data = {}, chart) => {
                         }
                         str += `${dateTitle}
                                 <div style="display: flex;font-size: 14px;">
-                                    <div style="padding-right: 24px;">${item.label || typeMap[item.type]}</div>
+                                    <div style="padding-right: 24px;">${item.label || that.configData.typeMap[item.type]}</div>
                                     <div style="width: 100%;text-align: right;font-weight: bold;">${Number(itemTotal.toFixed(2)).toFixed(2)}元</div>
                                 </div>
                                 ${subStr}`
@@ -272,16 +280,16 @@ export const getLineOption = (data = {}, { type, pickerType }) => {
                     item.list.forEach(cell => {
                         if (item.list.length !== 1 || (item.list.length === 1 && cell.label && cell.label !== item.label)) {
                             subStr += `<div style="display: flex;">
-                                        <div style="padding-right: 24px;">- ${cell.label || typeMap[cell.type] || item.label}</div>
-                                        <div style="width: 100%;text-align: right;font-weight: bold;">${Number(getCellNum(cell, item).toFixed(2)).toFixed(2)}元</div>
+                                        <div style="padding-right: 24px;">- ${cell.label || that.configData.typeMap[cell.type] || item.label}</div>
+                                        <div style="width: 100%;text-align: right;font-weight: bold;">${Number(cell.num.toFixed(2)).toFixed(2)}元</div>
                                     </div>`
                         }
-                        itemTotal += getCellNum(cell, item)
+                        itemTotal += cell.num
                     })
                     subStr += '</div>'
 
                     str += `<div style="display: flex;font-size: 14px;">
-                                <div style="padding-right: 24px;">${item.label || typeMap[item.type]}</div>
+                                <div style="padding-right: 24px;">${item.label || that.configData.typeMap[item.type]}</div>
                                 <div style="width: 100%;text-align: right;font-weight: bold;">${Number(itemTotal.toFixed(2)).toFixed(2)}元</div>
                             </div>
                             ${subStr}`

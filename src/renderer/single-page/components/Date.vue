@@ -51,7 +51,6 @@
 
 <script>
 import {
-	getCellNum,
     getItemTotal,
     createGroupObjByType,
     reSortDataListByType,
@@ -65,8 +64,6 @@ import {
     filterDataListByDate,
 } from '@renderer/utils'
 import { dateFormat, getTextSize, getAllDateBetweenGap } from '@renderer/utils/libs'
-import json from '@renderer/mock'
-import { typeMap } from '@renderer/config'
 import * as echarts from 'echarts'
 import { getBarOption, getToolbarOption, getPieOption } from '@renderer/config/options'
 
@@ -117,7 +114,6 @@ export default {
             monthShortcuts,
             detailShortcuts: getMonthShortcuts(),
             type: '15',
-            typeMap,
             detailEchartsType: 'bar',
         }
     },
@@ -125,17 +121,23 @@ export default {
 		billData() {
 			return this.$store.state.app.billData
 		},
+		configData() {
+			return this.$store.state.app.configData
+		},
 	},
     mounted() {
-        this.renderEchartsByType()
+        
+    },
+    methods: {
+        init() {
+            this.renderEchartsByType()
         window.onresize = function() {
             chartInstance.bar?.resize()
             chartInstance.pie?.resize()
             chartInstance.toolbar?.resize()
             chartInstance.dayToolbar?.resize()
         }
-    },
-    methods: {
+        },
         renderEchartsByType() {
             if (!this.pickerType) { // 年
                 this.$nextTick(() => {
@@ -252,7 +254,7 @@ export default {
             if (!chartInstance.bar) {
                 const chartDom = document.getElementsByClassName('chart')[0]
                 chartInstance.bar = echarts.init(chartDom)
-                const option = getBarOption(data, chartInstance.bar)
+                const option = getBarOption(data, this)
                 chartInstance.bar.setOption(option)
                 chartInstance.bar.on('click', (params) => {
                     if (!this.pickerType) { // 年 -> 月
@@ -269,7 +271,7 @@ export default {
                     }
                 })
             } else {
-                const option = getBarOption(data, chartInstance.bar)
+                const option = getBarOption(data, this)
                 chartInstance.bar.setOption(option, true)
             }
         },
@@ -309,8 +311,8 @@ export default {
                     ]
                     
                     this.$emit('toolbar-label-change', {
-                        left: startValue,
-                        right: endValue,
+                        left: startDate,
+                        right: endDate,
                     })
                     if (dayToolbar) {
                         this.renderDayToolbar(rangeDate)

@@ -5,8 +5,8 @@ import router from './router'
 import store from './store'
 
 import 'element-plus/dist/index.css'
-import './styles/index.css'
 import './styles/echarts.css'
+import './styles/index.css'
 import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
 
 zhCn.el.datepicker.months = {

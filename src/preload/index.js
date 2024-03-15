@@ -9,7 +9,8 @@ const listen = {
 // Custom APIs for renderer
 const call = {
 	rendererCallIpcMain: () => ipcRenderer.invoke('rendererCallIpcMain'),
-	desktopCapturer: () => ipcRenderer.invoke('desktopCapturer'),
+	getLimitConfig: (username) => ipcRenderer.invoke('getLimitConfig', username),
+	getUserData: (fileName, username, password) => ipcRenderer.invoke('getUserData', { username, fileName, password }),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

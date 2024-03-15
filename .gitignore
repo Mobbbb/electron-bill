@@ -4,3 +4,4 @@ out
 mock
 .DS_Store
 *.log*
+AppData

@@ -1,21 +1,33 @@
 import { getAllMonthBetweenGap, dateFormat } from './libs'
-import { limitConfig, borrowConfig, typeMap } from '@renderer/config'
 import store from '@renderer/store'
 
-function getCellNum(cell, item) {
-    if (typeof cell.num === 'function') {
-        const borrow = borrowConfig[item.date.slice(0, 7)] || 0
-        const limit = getLimit(item.date.slice(0, 7))
-        return cell.num(store.state.app.billData.monthTotalYM[item.date.slice(0, 7)] || 0, borrow, limit)
-    }
-    return cell.num
+function getMonthTotal(data) {
+    const dateGroupYM = {}
+
+    data.forEach(item => {
+        if (!dateGroupYM[item.date.slice(0, 7)]) {
+            dateGroupYM[item.date.slice(0, 7)] = []
+        }
+        dateGroupYM[item.date.slice(0, 7)] = dateGroupYM[item.date.slice(0, 7)].concat(item.list)
+    })
+
+    Object.keys(dateGroupYM).forEach(key => {
+        let total = 0
+        dateGroupYM[key].forEach(item => {
+            if (typeof item.num === 'number') {
+                total += item.num
+            }
+        })
+        dateGroupYM[key] = total
+    })
+    return dateGroupYM
 }
 
 function getItemTotal(groupObj, key) {
     let itemTotal = 0
     groupObj[key].forEach(item => {
         item.list.forEach(cell => {
-            itemTotal += getCellNum(cell, item)
+            itemTotal += cell.num
         })
     })
 
@@ -69,9 +81,9 @@ function countYearPriceInType(data) {
         const key = item.date.slice(0, 4)
         item.list.forEach(cell => {
             if (typeof obj[key] !== 'undefined') {
-                obj[key] += getCellNum(cell, item)
+                obj[key] += cell.num
             } else {
-                obj[key] = getCellNum(cell, item)
+                obj[key] = cell.num
             }
         })
     })
@@ -126,7 +138,7 @@ function splitAndFilterDataList(dataList = [], filterType) {
     return arr.filter(item => item.type === filterType)
 }
 
-function filterGroupObjByRange(dateGroup, range = [], keyType = 'date') {
+function filterGroupObjByRange(dateGroup = {}, range = [], keyType = 'date') {
     const groupObj = {}
     Object.keys(dateGroup).forEach(key => {
         if (keyType === 'number') {
@@ -143,13 +155,8 @@ function filterGroupObjByRange(dateGroup, range = [], keyType = 'date') {
 
 function getLimit(date) {
     const year = date.slice(0, 4)
-    const limit = limitConfig[date] || limitConfig[year]
-    if (!limit) {
-        ElementPlus.ElMessage({
-            message: `LimitConfig - ${date} 未配置`,
-            type: 'warning',
-        })
-    }
+    const limit = store.state.app.limitData[date] || store.state.app.limitData[year]
+    if (!limit) return Infinity
     return limit
 }
 
@@ -180,8 +187,8 @@ function transformGroupObj2DetailArr(groupObj) {
     })
     data.sort((a, b) => parseInt(a.key) - parseInt(b.key))
     data.forEach(item => {
-        if (typeMap[item.key]) {
-            item.key = typeMap[item.key]
+        if (store.state.app.configData.typeMap[item.key]) {
+            item.key = store.state.app.configData.typeMap[item.key]
         }
     })
     return data
@@ -197,12 +204,48 @@ function filterDataListByDate(dateGroup, dateRange) {
     return dataList
 }
 
-function getDateGroup(data) {
+function getBrunchValue(date, rest, monthTotalYM) {
+    const borrow = store.state.app.configData.borrow[date.slice(0, 7)] || 0
+    const limit = getLimit(date.slice(0, 7))
+    const registered = monthTotalYM[date.slice(0, 7)] || 0
+    return limit + borrow - registered - rest
+}
+
+function formatLimitData(data, limitConfigData) {
+    const limitObj = {}
+    Object.keys(data).forEach(key => {
+        if (!limitObj[key]) limitObj[key] = 0
+        data[key].forEach(item => {
+            const keyArr = item.split('_')
+            limitObj[key] += limitConfigData[keyArr[0]][keyArr[1]]
+        })
+    })
+    return limitObj
+}
+
+function transfromBillData(data, limitConfigData) {
+    data.forEach(item => {
+        item.list.forEach(cell => {
+            if (cell.function === 'getValueByKey' && cell.key) {
+                const keyArr = cell.key.split('_')
+                cell.num = limitConfigData[keyArr[0]][keyArr[1]]
+            }
+        })
+    })
+}
+
+function getDateGroup(data, monthTotalYM) {
     const dateGroupY = {}
     const dateGroupYM = {}
     const allMonthArr = []
 
     data.forEach(item => {
+        item.list.forEach(cell => {
+            if (cell.function === 'getBrunchValue') {
+                cell.num = getBrunchValue(item.date, cell.rest || 0, monthTotalYM)
+            }
+        })
+
         allMonthArr.push(item.date.slice(0, 7))
         if (!dateGroupYM[item.date.slice(0, 7)]) {
             dateGroupYM[item.date.slice(0, 7)] = []
@@ -220,35 +263,12 @@ function getDateGroup(data) {
         dateGroupYM: dateGroupYM,
         dateGroupY: dateGroupY,
         allMonthArr: getAllMonthBetweenGap(allMonthArr[0], allMonthArr[allMonthArr.length - 1]),
-        monthTotalYM: {},
     }
 }
 
-function getMonthTotal(data) {
-    const dateGroupYM = {}
-
-    data.forEach(item => {
-        if (!dateGroupYM[item.date.slice(0, 7)]) {
-            dateGroupYM[item.date.slice(0, 7)] = []
-        }
-        dateGroupYM[item.date.slice(0, 7)] = dateGroupYM[item.date.slice(0, 7)].concat(item.list)
-    })
-
-    Object.keys(dateGroupYM).forEach(key => {
-        let total = 0
-        dateGroupYM[key].forEach(item => {
-            if (typeof item.num === 'number') {
-                total += item.num
-            }
-        })
-        dateGroupYM[key] = total
-    })
-    return dateGroupYM
-}
-
 export {
-    getCellNum,
     getItemTotal,
+    formatLimitData,
     createGroupObjByType,
     reSortDataListByType,
     countYearPriceInType,
@@ -260,5 +280,6 @@ export {
     transformGroupObj2DetailArr,
     filterDataListByDate,
     getDateGroup,
+    transfromBillData,
     getMonthTotal,
 }
