@@ -33,32 +33,38 @@ export default (mainWindow) => {
 		let lists = {}
 		const filePath = `./AppData/${username}/limitConfig/`
 		try {
-			const files = await fs.readdirSync(filePath)
+			const files = fs.readdirSync(filePath)
 			files.forEach(async file => {
 				const fileName = file.split('.')
-				const fileContent = await fs.readFileSync(join(filePath, file), 'utf8').toString()
+				const fileContent = fs.readFileSync(join(filePath, file), 'utf8').toString()
 				lists[fileName[0]] = JSON.parse(fileContent)
 			})
 		} catch (e) {
 			return {
 				data: {},
 				success: false,
+				code: '-4058',
+				msg: 'no such file or directory',
 			}
 		}
 		return {
 			data: lists,
 			success: true,
+			code: '200',
+			msg: '',
 		}
 	})
 
 	ipcMain.handle('getUserData', async (event, { username, password, fileName }) => {
 		let lists = []
 		try {
-			lists = await fs.readFileSync(`./AppData/${username}/${fileName}`).toString()
+			lists = fs.readFileSync(`./AppData/${username}/${fileName}`).toString()
 		} catch (e) {
 			return {
 				data: [],
 				success: false,
+				code: '-4058',
+				msg: 'no such file or directory',
 			}
 		}
 
@@ -72,12 +78,16 @@ export default (mainWindow) => {
 			return {
 				data: [],
 				success: false,
+				code: '-1',
+				msg: 'decryption failed',
 			}
 		}
 
         return {
 			data: lists,
 			success: true,
+			code: '200',
+			msg: '',
 		}
 	})
 }

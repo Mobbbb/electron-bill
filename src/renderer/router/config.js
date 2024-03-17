@@ -20,7 +20,18 @@ export const loginRoute = {
     component: () => import('@renderer/single-page/login/index.vue'),
 }
 
+export const settingRoute = {
+    path: '/setting',
+    name: 'setting',
+    meta: {
+        level: 0,
+        name: '设置',
+    },
+    component: () => import('@renderer/single-page/setting/index.vue'),
+}
+
 export const routes = [
     homeRoute,
     loginRoute,
+    settingRoute,
 ]

@@ -9,7 +9,7 @@
 			:disabled="!pickerType"
 			:editable="false"
 			:clearable="false"
-			:shortcuts="monthShortcuts"
+			:shortcuts="dateConfig.monthShortcuts"
 			type="monthrange"
 			v-model="detailRange"
 			range-separator="To"
@@ -24,7 +24,7 @@
 			:disabled="!pickerType"
 			:editable="false"
 			:clearable="false"
-			:shortcuts="monthShortcuts"
+			:shortcuts="dateConfig.monthShortcuts"
 			type="monthrange"
 			v-model="monthRange"
 			range-separator="To"
@@ -51,14 +51,8 @@
 
 <script>
 import {
-    getItemTotal,
-    createGroupObjByType,
-    reSortDataListByType,
-    countYearPriceInType,
     splitGroupObjByType,
-    splitAndFilterDataList,
     filterGroupObjByRange,
-    getLimit,
     transformGroupObj2DateArr,
     transformGroupObj2DetailArr,
     filterDataListByDate,
@@ -75,44 +69,15 @@ const chartInstance = {
 }
 
 export default {
-	props: ['latestDate', 'oldestDate'],
+	props: ['dateConfig'],
 	data() {
-        const date = new Date()
+        const date = new Date(`${this.dateConfig.latestDate}-01`)
         const currentYear = date.getFullYear()
-        const latestYear = Number(this.latestDate.slice(0, 4))
-        const oldestDate = Number(this.oldestDate.slice(0, 4))
-
-        const monthShortcuts = []
-        for (let i = (latestYear - oldestDate + 1); i > 0; i--) {
-            const year = latestYear + 1 - i
-            monthShortcuts.unshift({
-                text: `${year}年`,
-                value: [new Date(year, 0, 1), new Date(year, 11, 31)],
-            })
-        }
-
-        const getMonthShortcuts = () => {
-            let year = Number(this.latestDate.slice(0, 4))
-            let month = this.latestDate.slice(5, 7) - 1
-            const shortcuts = []
-            for (let i = 0; i < 5; i++) {
-                year = month < 0 ? year - 1 : year
-                month = month < 0 ? month + 12 : month
-                shortcuts.push({
-                    text: `${year}.${month + 1}`,
-                    value: [new Date(year, month, 1), new Date(year, month, 1)],
-                })
-                month--
-            }
-            return shortcuts
-        }
-
+        
         return {
             pickerType: 1, // 图表横坐标类型
             monthRange: [new Date(currentYear, 0, 1), new Date(currentYear, 11, 31)],
             detailRange: [new Date(currentYear, date.getMonth(), 1), new Date(currentYear, date.getMonth() + 1, 0)],
-            monthShortcuts,
-            detailShortcuts: getMonthShortcuts(),
             type: '15',
             detailEchartsType: 'bar',
         }
@@ -126,18 +91,15 @@ export default {
 		},
 	},
     mounted() {
-        
-    },
-    methods: {
-        init() {
-            this.renderEchartsByType()
+        this.renderEchartsByType()
         window.onresize = function() {
             chartInstance.bar?.resize()
             chartInstance.pie?.resize()
             chartInstance.toolbar?.resize()
             chartInstance.dayToolbar?.resize()
         }
-        },
+    },
+    methods: {
         renderEchartsByType() {
             if (!this.pickerType) { // 年
                 this.$nextTick(() => {
