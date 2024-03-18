@@ -4,9 +4,6 @@
 
 <template>
 	<div class="login">
-        <div class="left-img">
-            <img src="@renderer/assets/loginBac.png" :style="{'marginLeft': '-150px', height: '100%'}">
-        </div>
         <div class="login-con">
             <el-card class="login-card">
                 <div class="title-header">
@@ -75,8 +72,8 @@ const validatePass2 = (rule, value, callback) => {
 }
 
 const rules = reactive({
-	username: [{ validator: validatePass1 }],
-	password: [{ validator: validatePass2 }],
+	username: [{ validator: validatePass1, trigger: 'change', }],
+	password: [{ validator: validatePass2, trigger: 'change', }],
 })
 
 const initData = (value) => store.dispatch('app/initData', value)
@@ -87,22 +84,26 @@ const handleSubmit = async () => {
 	const { success, code, data } = result
 	
 	checkStatus.value = success || (!success && code === '-4058')
-	
 	ruleFormRef.value.validate(async (valid, fields) => {
 		checkStatus.value = true
 		if (valid && success) {
+			sessionStorage.setItem('username', formData.username)
 			sessionStorage.setItem('userToken', password)
-			await initData(data)
+			await initData({ outsideData: data, username: formData.username })
 			router.push({
 				name: 'home',
 			})
-		} else if (valid && !success) { // 注册账户
+		} else if (valid && (!success && code === '-4058')) { // 注册账户
 			ElMessageBox.confirm('该账户不存在，点击确定为您创建此账户', '提示', {
 				confirmButtonText: '确定',
       			cancelButtonText: '取消',
 			}).then(() => {
 				router.push({
 					name: 'setting',
+					query: {
+						username: formData.username,
+						password,
+					},
 				})
 			}).catch(() => {})
 		}

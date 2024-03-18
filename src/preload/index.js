@@ -9,6 +9,7 @@ const listen = {
 // Custom APIs for renderer
 const call = {
 	rendererCallIpcMain: () => ipcRenderer.invoke('rendererCallIpcMain'),
+	initAppData: (username, password, params) => ipcRenderer.invoke('initAppData', { username, password, params }),
 	getLimitConfig: (username) => ipcRenderer.invoke('getLimitConfig', username),
 	getUserData: (fileName, username, password) => ipcRenderer.invoke('getUserData', { username, fileName, password }),
 }

@@ -55,7 +55,7 @@ const dateConfig = computed(() => {
 	}
 	return {
 		monthShortcuts: arr,
-		latestDate: billData.value.latestDate,
+		latestDate,
 	}
 })
 

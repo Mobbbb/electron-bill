@@ -28,6 +28,39 @@ export default (mainWindow) => {
 	// IPC test
 	ipcMain.on('ping', () => console.log('pong'))
 	ipcMain.handle('rendererCallIpcMain', () => 'ping')
+	ipcMain.handle('initAppData', async (event, { username, password, params }) => {
+		const { limitConfig, limitData, type } = params
+		try {
+			if (!fs.existsSync(`./AppData/${username}`)) {
+				fs.mkdirSync(`./AppData/${username}`)
+			}
+			if (!fs.existsSync(`./AppData/${username}/limitConfig`)) {
+				fs.mkdirSync(`./AppData/${username}/limitConfig`)
+			}
+			Object.keys(limitConfig).forEach(key => {
+				fs.writeFileSync(`./AppData/${username}/limitConfig/${key}.json`, JSON.stringify(limitConfig[key]))
+			})
+			fs.writeFileSync(`./AppData/${username}/borrow.json`, '{}')
+			fs.writeFileSync(`./AppData/${username}/data`, encrypto('[]', password))
+			fs.writeFileSync(`./AppData/${username}/limit.json`, JSON.stringify(limitData))
+			fs.writeFileSync(`./AppData/${username}/type.json`, JSON.stringify(type))
+			
+			return {
+				data: null,
+				success: true,
+				code: '200',
+				msg: '',
+			}
+		} catch (e) {
+			fs.rmdirSync(`./AppData/${username}`, { recursive: true })
+			return {
+				data: null,
+				success: false,
+				code: '-2',
+				msg: 'Directory created failed',
+			}
+		}
+	})
 	
 	ipcMain.handle('getLimitConfig', async (event, username) => {
 		let lists = {}

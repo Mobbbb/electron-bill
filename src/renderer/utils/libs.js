@@ -68,6 +68,9 @@ const dateFormat = (date, fmt = 'yyyy-MM-dd') => {
  */
 const getAllMonthBetweenGap = (stime, etime) => {
     let diffdate = []
+    if (!stime || !stime) {
+        return diffdate
+    }
     while(stime < etime) {
         diffdate.push(stime)
         let nextMonth = parseInt(stime.slice(5, 7)) + 1

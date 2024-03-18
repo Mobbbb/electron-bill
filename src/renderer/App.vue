@@ -9,9 +9,10 @@ import { useStore } from 'vuex'
 const store = new useStore()
 
 const billData = computed(() => store.state.app.billData)
-const initData = () => store.dispatch('app/initData')
+const initData = (value) => store.dispatch('app/initData', value)
 
 if (!billData.value.dateGroupYM) {
-	initData()
+	const username = sessionStorage.getItem('username')
+	initData({ username })
 }
 </script>

@@ -18,7 +18,11 @@ const app = {
     },
     mutations: {
         setBillData(state, data) {
+            const allMonthArr = state.billData.allMonthArr
             state.billData = data
+            if (!state.billData.allMonthArr.length) {
+                state.billData.allMonthArr = allMonthArr
+            }
         },
         setConfigData(state, data) {
             state.configData = data
@@ -31,15 +35,15 @@ const app = {
         },
     },
     actions: {
-        async initData({ state, dispatch }, outsideData) {
-            await dispatch('getConfigData')
-            await dispatch('getLimitData')
-            await dispatch('getBillData', outsideData)
+        async initData({ dispatch }, { outsideData = '', username }) {
+            await dispatch('getConfigData', username)
+            await dispatch('getLimitData', username)
+            await dispatch('getBillData', { outsideData, username })
         },
-        async getConfigData({ commit })  {
-            const getLimitConfig = async () => await window.call.getLimitConfig('admin')
-            const getBorrowData = async () => await window.call.getUserData('borrow.json', 'admin')
-            const getTypeConfig = async () => await window.call.getUserData('type.json', 'admin')
+        async getConfigData({ commit }, username)  {
+            const getLimitConfig = async () => await window.call.getLimitConfig(username)
+            const getBorrowData = async () => await window.call.getUserData('borrow.json', username)
+            const getTypeConfig = async () => await window.call.getUserData('type.json', username)
 
             const result = await Promise.all([getBorrowData(), getTypeConfig(), getLimitConfig()])
             const reverseTypeMap = {}
@@ -54,7 +58,7 @@ const app = {
             commit('setConfigData', configData)
             commit('setLimitConfigData', limitConfigData)
         },
-        async getBillData({ state, commit }, outsideData) {
+        async getBillData({ state, commit }, { outsideData, username }) {
             const password = sessionStorage.getItem('userToken')
             if (outsideData) {
                 transfromBillData(outsideData, state.limitConfigData)
@@ -62,7 +66,7 @@ const app = {
                 const groupData = getDateGroup(outsideData, monthTotalYM)
                 commit('setBillData', groupData)
             } else if (password) {
-                let result = await window.call.getUserData('data', 'admin', password)
+                let result = await window.call.getUserData('data', username, password)
                 if (result.success) {
                     const data = result.data
                     transfromBillData(data, state.limitConfigData)
@@ -74,8 +78,8 @@ const app = {
                 }
             }
         },
-        async getLimitData({ state, commit }) {
-            let result = await window.call.getUserData('limit.json', 'admin')
+        async getLimitData({ state, commit }, username) {
+            let result = await window.call.getUserData('limit.json', username)
             const limitData = formatLimitData(result.data, state.limitConfigData)
             commit('setLimitData', limitData)
         },
