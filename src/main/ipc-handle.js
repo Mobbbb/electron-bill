@@ -1,28 +1,7 @@
 import { ipcMain } from 'electron'
 import { join } from 'path'
+import { encrypto, decrypto } from './utils'
 const fs = require('fs')
-const crypto = require('crypto')
-
-const algorithm = 'aes-256-cbc'
-const iv = Buffer.alloc(16, 0) // 初始化向量
-
-function encrypto(text, password) { // 加密
-	const keyByte = Buffer.from(password)
-	let cipher = crypto.createCipheriv(algorithm, keyByte, iv)
-	let encrypted = cipher.update(text)
-	encrypted = Buffer.concat([encrypted, cipher.final()])
-	return encrypted.toString('hex')
-}
-
-function decrypto(text, password) { // 解密
-	const keyByte = Buffer.from(password)
-	let encryptedText = Buffer.from(text, 'hex')
-	let decipher = crypto.createDecipheriv(algorithm, keyByte, iv)
-	let decrypted = decipher.update(encryptedText)
-	decrypted = Buffer.concat([decrypted, decipher.final()])
-
-	return decrypted.toString()
-}
 
 export default (mainWindow) => {
 	// IPC test
@@ -44,7 +23,7 @@ export default (mainWindow) => {
 			fs.writeFileSync(`./AppData/${username}/data`, encrypto('[]', password))
 			fs.writeFileSync(`./AppData/${username}/limit.json`, JSON.stringify(limitData))
 			fs.writeFileSync(`./AppData/${username}/type.json`, JSON.stringify(type))
-			
+
 			return {
 				data: null,
 				success: true,
@@ -77,7 +56,7 @@ export default (mainWindow) => {
 				data: {},
 				success: false,
 				code: '-4058',
-				msg: 'no such file or directory',
+				msg: 'No such file or directory',
 			}
 		}
 		return {
@@ -88,16 +67,62 @@ export default (mainWindow) => {
 		}
 	})
 
+	ipcMain.handle('updateUserData', async (event, { username, password, fileName, text }) => {
+		const fileResponse = {
+			data: null,
+			success: false,
+			code: '-4',
+			msg: 'Data update failed',
+		}
+		const filePath = `./AppData/${username}/${fileName}`
+		let json = JSON.stringify(text)
+
+		try {
+			if (password) { // 需要加密的文件
+				json = encrypto(text, password)
+				fs.renameSync(filePath, `${filePath}.temp`) // 将旧文件转为临时文件
+			}
+		} catch (e) {
+			return fileResponse
+		}
+
+		try {
+			fs.writeFileSync(filePath, json)
+			fs.renameSync(`${filePath}.temp`, `${filePath}.bk`) // 将临时文件转为备份文件
+		} catch (e) {
+			fs.renameSync(`${filePath}.temp`, filePath) // 将临时文件恢复为原文件
+			return fileResponse
+		}
+
+		return {
+			data: null,
+			success: true,
+			code: '200',
+			msg: '',
+		}
+	})
+
 	ipcMain.handle('getUserData', async (event, { username, password, fileName }) => {
+		const filePath = `./AppData/${username}/${fileName}`
 		let lists = []
 		try {
-			lists = fs.readFileSync(`./AppData/${username}/${fileName}`).toString()
+			lists = fs.readFileSync(filePath).toString()
 		} catch (e) {
+			if (password) {
+				if (fs.existsSync(`${filePath}.bk`) || fs.existsSync(`${filePath}.temp`)) {
+					return {
+						data: [],
+						success: false,
+						code: '-3',
+						msg: 'Bk or temp file exist',
+					}
+				}
+			}
 			return {
 				data: [],
 				success: false,
 				code: '-4058',
-				msg: 'no such file or directory',
+				msg: 'No such file or directory',
 			}
 		}
 
@@ -112,7 +137,7 @@ export default (mainWindow) => {
 				data: [],
 				success: false,
 				code: '-1',
-				msg: 'decryption failed',
+				msg: 'Data acquisition failed',
 			}
 		}
 

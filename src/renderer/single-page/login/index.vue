@@ -82,8 +82,10 @@ const handleSubmit = async () => {
 	const password = md5(formData.password)
 	const result = await window.call.getUserData('data', formData.username, password)
 	const { success, code, data } = result
-	
-	checkStatus.value = success || (!success && code === '-4058')
+	const registerStatus = !success && code === '-4058' // 注册账户
+	const recoverStatus = !success && code === '-3' // 数据恢复用户
+
+	checkStatus.value = success || registerStatus || recoverStatus
 	ruleFormRef.value.validate(async (valid, fields) => {
 		checkStatus.value = true
 		if (valid && success) {
@@ -93,7 +95,7 @@ const handleSubmit = async () => {
 			router.push({
 				name: 'home',
 			})
-		} else if (valid && (!success && code === '-4058')) { // 注册账户
+		} else if (valid && registerStatus) {
 			ElMessageBox.confirm('该账户不存在，点击确定为您创建此账户', '提示', {
 				confirmButtonText: '确定',
       			cancelButtonText: '取消',
@@ -106,6 +108,9 @@ const handleSubmit = async () => {
 					},
 				})
 			}).catch(() => {})
+		} else if (valid && recoverStatus) {
+			// todo
+			console.log('备份')
 		}
 	})
 }
