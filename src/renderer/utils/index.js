@@ -204,7 +204,7 @@ function filterDataListByDate(dateGroup, dateRange) {
     return dataList
 }
 
-function getBrunchValue(date, rest, monthTotalYM) {
+function getBranchValue(date, rest, monthTotalYM) {
     const borrow = store.state.app.configData.borrow[date.slice(0, 7)] || 0
     const limit = getLimit(date.slice(0, 7))
     const registered = monthTotalYM[date.slice(0, 7)] || 0
@@ -241,8 +241,8 @@ function getDateGroup(data, monthTotalYM) {
 
     data.forEach(item => {
         item.list.forEach(cell => {
-            if (cell.function === 'getBrunchValue') {
-                cell.num = getBrunchValue(item.date, cell.rest || 0, monthTotalYM)
+            if (cell.function === 'getBranchValue') {
+                cell.num = getBranchValue(item.date, cell.rest || 0, monthTotalYM)
             }
         })
 

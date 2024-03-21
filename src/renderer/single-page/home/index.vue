@@ -22,17 +22,20 @@
 				</div>
 			</div>
 		</div>
-		<el-icon :size="22" class="config-set"><Tools /></el-icon>
+		<el-icon :size="20" class="config-set"><Tools /></el-icon>
+		<el-icon :size="20" class="document-add" @click="jumpToAdd"><Edit /></el-icon>
 	</div>
 </template>
 
 <script setup>
 import { computed, ref, reactive, onMounted } from 'vue'
 import { useStore } from 'vuex'
-import { Tools } from '@element-plus/icons-vue'
+import { Tools, Edit } from '@element-plus/icons-vue'
+import { useRouter } from 'vue-router'
 import DateComponent from '../components/Date.vue'
 
 const store = new useStore()
+const router = useRouter()
 
 const toolbarLabel = reactive({
 	left: '1970-01',
@@ -71,6 +74,12 @@ const daytoolbarLabelChange = ({ left, right }) => {
 	toolbarLabel.dayLeft = left
 	toolbarLabel.dayRight = right
 }
+
+const jumpToAdd = () => {
+	router.push({
+		name: 'input',
+	})
+}
 </script>
 
 <style scoped>
@@ -79,13 +88,19 @@ const daytoolbarLabelChange = ({ left, right }) => {
 	width: 100%;
 	position: relative;
 }
-.config-set {
+.config-set,.document-add {
 	position: absolute;
-	right: 14px;
-	top: 18px;
-	color: var(--el-text-color-regular);
+	right: 22px;
+	top: 22px;
+	color: #868686;
 	cursor: pointer;
 	transition: all .3s ease;
+}
+.document-add {
+	left: 22px;
+}
+.document-add:hover {
+	color: #222;
 }
 .config-set:hover {
 	color: #222;
