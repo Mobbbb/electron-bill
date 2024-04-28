@@ -61,12 +61,7 @@ import { dateFormat, getTextSize, getAllDateBetweenGap } from '@renderer/utils/l
 import * as echarts from 'echarts'
 import { getBarOption, getToolbarOption, getPieOption } from '@renderer/config/options'
 
-const chartInstance = {
-    bar: null,
-    pie: null,
-    toolbar: null,
-    dayToolbar: null,
-}
+let chartInstance = {}
 
 export default {
 	props: ['dateConfig'],
@@ -91,6 +86,12 @@ export default {
 		},
 	},
     mounted() {
+        chartInstance = {
+            bar: null,
+            pie: null,
+            toolbar: null,
+            dayToolbar: null,
+        }
         this.renderEchartsByType()
         window.onresize = function() {
             chartInstance.bar?.resize()
