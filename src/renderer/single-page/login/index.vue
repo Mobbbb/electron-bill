@@ -91,6 +91,7 @@ const handleSubmit = async () => {
 		if (valid && success) {
 			sessionStorage.setItem('username', formData.username)
 			sessionStorage.setItem('userToken', password)
+			window.originData = JSON.parse(JSON.stringify(data))
 			await initData({ outsideData: data, username: formData.username })
 			router.push({
 				name: 'home',

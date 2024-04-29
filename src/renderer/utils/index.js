@@ -177,6 +177,18 @@ function transformGroupObj2DateArr(groupObj) {
     return data
 }
 
+function transformGroupObj2DateArrY(groupObj) {
+    const data = []
+    Object.keys(groupObj).forEach(key => {
+        data.push({
+            date: key,
+            data: getItemTotal(groupObj, key),
+        })
+    })
+    data.sort((a, b) => a.date > b.date ? 1 : -1)
+    return data
+}
+
 function transformGroupObj2DetailArr(groupObj) {
     const data = []
     Object.keys(groupObj).forEach(key => {
@@ -277,6 +289,7 @@ export {
     filterGroupObjByRange,
     getLimit,
     transformGroupObj2DateArr,
+    transformGroupObj2DateArrY,
     transformGroupObj2DetailArr,
     filterDataListByDate,
     getDateGroup,

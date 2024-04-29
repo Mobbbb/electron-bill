@@ -16,7 +16,7 @@
 				</el-date-picker>
 			</el-form-item>
 			<el-form-item label="类别" prop="type">
-				<el-select v-model="formData.type" placeholder="请选择类别">
+				<el-select v-model="formData.type" placeholder="请选择类别" @change="changeType">
 					<el-option
 						v-for="(item, key) in configData.typeMap"
 						:key="key"
@@ -39,16 +39,17 @@
 				<el-card class="data-lists-item" v-for="(item, index) in dynamicFormData.listData">
 					<el-form-item label="数据来源">
 						<el-select v-model="item.dataType" placeholder="请选择" style="width: 200px;margin-right: 12px;">
-							<el-option label="手动录入" :value="0" />
+							<el-option label="填写" :value="0" />
 							<el-option label="计算未录入金额" :value="1" />
 							<el-option label="从配置文件中选择" :value="2" />
 						</el-select>
 					</el-form-item>
-					<el-form-item v-if="formData.type === '*'" label="类别"
+					<el-form-item v-if="formData.type === '*'" label="二级类别"
+						:prop="`listData.${index}.type`"
 						:rules="[{ required: true, message: '请填写', trigger: 'change' }]">
 						<el-select v-model="item.type" placeholder="请选择类别">
 							<el-option
-								v-for="(item, key) in configData.typeMap"
+								v-for="(item, key) in secondTypeMap"
 								:key="key"
 								:label="item"
 								:value="key" />
@@ -93,23 +94,25 @@
 							controls-position="right" />
 					</el-form-item>
 					<el-form-item v-if="item.dataType === 2" label="配置文件"
-						:rules="[{ required: true, message: '请填写', trigger: 'change' }]">
+						:prop="`listData.${index}.configFile`"
+						:rules="[{ required: true, message: '请选择', trigger: 'change' }]">
 						<el-select v-model="item.configFile" placeholder="请选择配置文件">
 							<el-option
-								v-for="(cell, key) in limitConfigData"
-								:key="key"
-								:label="WORD_MAP[key]"
-								:value="key" />
+								v-for="item in configFileData"
+								:key="item"
+								:label="WORD_MAP[item] || item"
+								:value="item" />
 						</el-select>
 					</el-form-item>
 					<el-form-item v-if="item.dataType === 2" label="金额"
-						:rules="[{ required: true, message: '请填写', trigger: 'change' }]">
+						:prop="`listData.${index}.selectNum`"
+						:rules="[{ required: true, message: '请选择', trigger: 'change' }]">
 						<el-select v-model="item.selectNum" placeholder="请选择金额">
 							<el-option
 								v-for="(cell, key) in limitConfigData[item.configFile]"
 								:key="key"
 								:label="key + ' - ' + cell"
-								:value="cell" />
+								:value="key" />
 						</el-select>
 					</el-form-item>
 					<el-button size="small" :icon="Minus" type="danger"
@@ -132,15 +135,17 @@
 import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { type } from '@renderer/config'
+import { HOUSE_NAME, CAR_NAME } from '@renderer/config'
 import { Delete, Plus, Minus } from '@element-plus/icons-vue'
 import Back from '../components/Back.vue'
 
 const WORD_MAP = {
-	'house': '房屋',
-	'base': '基础',
-	'car': '汽车',
+	'house': HOUSE_NAME,
+	'car': CAR_NAME,
 }
+
+const WORD_MAP_CN = {}
+Object.keys(WORD_MAP).forEach(key => WORD_MAP_CN[WORD_MAP[key]] = key)
 
 const route = useRoute()
 const router = useRouter()
@@ -168,9 +173,19 @@ const ruleFormRef = ref()
 const dynamicFormRef = ref()
 
 const configData = computed(() => store.state.app.configData)
+const secondTypeMap = computed(() => {
+	let obj = {}
+	Object.keys(store.state.app.configData.typeMap).forEach(key => {
+		if (key !== '*') {
+			obj[key] = store.state.app.configData.typeMap[key]
+		}
+	})
+	return obj
+})
 const limitConfigData = computed(() => store.state.app.limitConfigData)
-
-const initData = (value) => store.dispatch('app/initData', value)
+const configFileData = computed(() => Object.keys(store.state.app.limitConfigData).filter(item => item !== 'base'))
+const initBillData = (value) => store.dispatch('app/initBillData', value)
+const updateNewBillDataSavedStatus = (value) => store.commit('app/updateNewBillDataSavedStatus', value)
 
 const addList = () => {
 	dynamicFormData.listData.push({
@@ -186,15 +201,50 @@ const removeList = (item) => {
 	}
 }
 
+const changeType = (value) => {
+	if (configFileData.value.includes(WORD_MAP_CN[configData.value.typeMap[value]])) {
+		if (configData.value.typeMap[value] === HOUSE_NAME) {
+			dynamicFormData.listData[0].dataType = 2
+			dynamicFormData.listData[0].configFile = WORD_MAP_CN[HOUSE_NAME]
+		} else if (configData.value.typeMap[value] === CAR_NAME) {
+			dynamicFormData.listData[0].dataType = 2
+			dynamicFormData.listData[0].configFile = WORD_MAP_CN[CAR_NAME]
+		} else {
+			dynamicFormData.listData[0].dataType = 0
+		}
+	} else {
+		dynamicFormData.listData[0].dataType = 0
+	}
+}
+
 const comfirm = async () => {
 	ruleFormRef.value.validate(async (valid, fields) => {
 		if (valid) {
 			dynamicFormRef.value.validate(async (valid, fields) => {
 				if (valid) {
-					console.log({
-						...formData,
-						list: dynamicFormData.listData,
+					const list  = []
+					dynamicFormData.listData.forEach(item => {
+						let obj = {}
+						if (item.label) obj.label = item.label
+						// 二级类型只有在一级类型不确定时才填写
+						if (formData.type === '*') obj.type = item.type
+						if (item.dataType === 1) {
+							obj.rest = item.rest
+							obj.function = 'getBranchValue'
+						}
+						if (item.dataType === 2) {
+							obj.key = `${item.configFile}_${item.selectNum}`
+							obj.function = 'getValueByKey'
+						}
+						obj.num = item.num || 0
+						list.push(obj)
 					})
+					window.originData.push({
+						...formData,
+						list,
+					})
+					initBillData(JSON.parse(JSON.stringify(window.originData)))
+					updateNewBillDataSavedStatus(false)
 				}
 			})
 		}

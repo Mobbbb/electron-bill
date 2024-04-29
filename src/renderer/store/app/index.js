@@ -1,4 +1,5 @@
 import { getDateGroup, formatLimitData, getMonthTotal, transfromBillData } from '@renderer/utils'
+import { getAllMonthBetweenGap } from '@renderer/utils/libs'
 import { ElMessage } from 'element-plus'
 
 const app = {
@@ -11,6 +12,7 @@ const app = {
             configData: {},
             limitData: {},
             limitConfigData: {},
+            newBillDataHasSaved: true,
         }
     },
     getters: {
@@ -23,6 +25,33 @@ const app = {
             if (!state.billData.allMonthArr.length) {
                 state.billData.allMonthArr = allMonthArr
             }
+        },
+        updateNewBillDataSavedStatus(state, status) {
+            // const dateY = data.date.slice(0, 4)
+            // const dateYM = data.date.slice(0, 7)
+            state.newBillDataHasSaved = status
+            // const allMonthArr = [...state.billData.allMonthArr]
+            // if (!allMonthArr.includes(dateYM)) {
+            //     allMonthArr.push(dateYM)
+            //     allMonthArr.sort((a, b) => a > b ? 1 : -1)
+            //     state.billData.allMonthArr = getAllMonthBetweenGap(allMonthArr[0], allMonthArr[allMonthArr.length - 1])
+            // }
+            // if (state.billData.dateGroupY[dateY]) {
+            //     state.billData.dateGroupY[dateY].push(data)
+            // } else {
+            //     state.billData.dateGroupY[dateY] = [data]
+            // }
+            // if (state.billData.dateGroupYM[dateYM]) {
+            //     state.billData.dateGroupYM[dateYM].push(data)
+            // } else {
+            //     state.billData.dateGroupYM[dateYM] = [data]
+            // }
+            // if (dateYM > state.billData.latestDate) {
+            //     state.billData.latestDate = dateYM
+            // }
+            // if (dateYM < state.billData.oldestDate) {
+            //     state.billData.oldestDate = dateYM
+            // }
         },
         setConfigData(state, data) {
             state.configData = data
@@ -58,25 +87,26 @@ const app = {
             commit('setConfigData', configData)
             commit('setLimitConfigData', limitConfigData)
         },
-        async getBillData({ state, commit }, { outsideData, username }) {
+        async getBillData({ dispatch }, { outsideData, username }) {
             const password = sessionStorage.getItem('userToken')
             if (outsideData) {
-                transfromBillData(outsideData, state.limitConfigData)
-                const monthTotalYM = getMonthTotal(outsideData)
-                const groupData = getDateGroup(outsideData, monthTotalYM)
-                commit('setBillData', groupData)
+                dispatch('initBillData', outsideData)
             } else if (password) {
                 let result = await window.call.getUserData('data', username, password)
                 if (result.success) {
                     const data = result.data
-                    transfromBillData(data, state.limitConfigData)
-                    const monthTotalYM = getMonthTotal(data)
-                    const groupData = getDateGroup(data, monthTotalYM)
-                    commit('setBillData', groupData)
+                    window.originData = JSON.parse(JSON.stringify(data))
+                    dispatch('initBillData', data)
                 } else {
                     ElMessage.error(result.msg)
                 }
             }
+        },
+        initBillData({ state, commit }, data) {
+            transfromBillData(data, state.limitConfigData)
+            const monthTotalYM = getMonthTotal(data)
+            const groupData = getDateGroup(data, monthTotalYM)
+            commit('setBillData', groupData)
         },
         async getLimitData({ state, commit }, username) {
             let result = await window.call.getUserData('limit.json', username)

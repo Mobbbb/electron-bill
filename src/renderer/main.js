@@ -24,6 +24,8 @@ zhCn.el.datepicker.months = {
     dec: '12\u6708',
 }
 
+window.originData = []
+
 const app = createApp(App)
 
 app.use(ElementPlus, {

@@ -68,22 +68,21 @@ export default (mainWindow) => {
 	})
 
 	ipcMain.handle('updateUserData', async (event, { username, password, fileName, text }) => {
-		const fileResponse = {
-			data: null,
-			success: false,
-			code: '-4',
-			msg: 'Data update failed',
-		}
 		const filePath = `./AppData/${username}/${fileName}`
 		let json = JSON.stringify(text)
 
 		try {
 			if (password) { // 需要加密的文件
-				json = encrypto(text, password)
+				json = encrypto(json, password)
 				fs.renameSync(filePath, `${filePath}.temp`) // 将旧文件转为临时文件
 			}
 		} catch (e) {
-			return fileResponse
+			return {
+				data: null,
+				success: false,
+				code: '-4',
+				msg: 'Encrypto failed',
+			}
 		}
 
 		try {
@@ -91,7 +90,12 @@ export default (mainWindow) => {
 			fs.renameSync(`${filePath}.temp`, `${filePath}.bk`) // 将临时文件转为备份文件
 		} catch (e) {
 			fs.renameSync(`${filePath}.temp`, filePath) // 将临时文件恢复为原文件
-			return fileResponse
+			return {
+				data: null,
+				success: false,
+				code: '-4',
+				msg: 'WriteFileSync or RenameSync failed',
+			}
 		}
 
 		return {

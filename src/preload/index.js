@@ -12,6 +12,7 @@ const call = {
 	initAppData: (username, password, params) => ipcRenderer.invoke('initAppData', { username, password, params }),
 	getLimitConfig: (username) => ipcRenderer.invoke('getLimitConfig', username),
 	getUserData: (fileName, username, password) => ipcRenderer.invoke('getUserData', { username, fileName, password }),
+	updateUserData: ({ username, password, fileName, text }) => ipcRenderer.invoke('updateUserData', { username, password, fileName, text }),
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

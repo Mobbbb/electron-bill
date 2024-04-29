@@ -2,7 +2,7 @@ import {
     createGroupObjByType,
     reSortDataListByType,
     countYearPriceInType,
-    transformGroupObj2DateArr,
+    transformGroupObj2DateArrY,
     filterDataListByDate,
 } from '@renderer/utils'
 
@@ -60,8 +60,8 @@ export const getBarOption = (data = {}, that) => {
                             groupObj[key] = that.billData.dateGroupYM[key]
                         }
                     })
-
-                    const data = transformGroupObj2DateArr(groupObj)
+                    
+                    const data = transformGroupObj2DateArrY(groupObj)
                     data.forEach(item => {
                         str += `<div style="display: flex;">
                                     <div style="padding-right: 24px;">${item.date}</div>

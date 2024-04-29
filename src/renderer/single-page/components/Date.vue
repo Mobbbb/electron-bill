@@ -54,6 +54,7 @@ import {
     splitGroupObjByType,
     filterGroupObjByRange,
     transformGroupObj2DateArr,
+    transformGroupObj2DateArrY,
     transformGroupObj2DetailArr,
     filterDataListByDate,
 } from '@renderer/utils'
@@ -180,7 +181,7 @@ export default {
             const startDate = this.billData.oldestDate.slice(0, 4)
             const endDate = this.billData.latestDate.slice(0, 4)
             const groupObj = filterGroupObjByRange(this.billData.dateGroupY, [startDate, endDate], 'number')
-            const data = transformGroupObj2DateArr(groupObj)
+            const data = transformGroupObj2DateArrY(groupObj)
             this.renderBarEcharts({ data: data.map(item => item.data), xAxis: data.map(item => item.date) })
             this.hideDocument(document.getElementsByClassName('chart-bottom')[0])
         },
@@ -270,9 +271,9 @@ export default {
                     let endDate = this.billData.allMonthArr[endValue]
                     const rangeDate = [
                         `${startDate}-01 00:00:00`,
-                        `${endDate}-01 00:00:00`,
+                        `${dateFormat(new Date(endDate.slice(0, 4), Number(endDate.slice(5, 7)), 0))} 00:00:00`
                     ]
-                    
+
                     this.$emit('toolbar-label-change', {
                         left: startDate,
                         right: endDate,
