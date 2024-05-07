@@ -36,7 +36,7 @@
 import { computed, ref, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { UserFilled, GoodsFilled } from '@element-plus/icons-vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessageBox } from 'element-plus'
 import { useRouter } from 'vue-router'
 import md5 from '@renderer/utils/md5'
 

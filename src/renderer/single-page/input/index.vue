@@ -126,7 +126,7 @@
 		</div>
 		<div style="text-align: center;margin: 24px 0;padding-right: 20px;">
 			<el-button :icon="Plus" @click="addList">添加</el-button>
-			<el-button size="large" type="primary" style="width: 230px;" @click="comfirm">录入</el-button>
+			<el-button type="primary" style="width: 230px;" @click="comfirm">录入</el-button>
 		</div>
     </el-card>
 </template>
@@ -137,6 +137,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { HOUSE_NAME, CAR_NAME } from '@renderer/config'
 import { Delete, Plus, Minus } from '@element-plus/icons-vue'
+import { ElMessage } from 'element-plus'
 import Back from '../components/Back.vue'
 
 const WORD_MAP = {
@@ -239,12 +240,13 @@ const comfirm = async () => {
 						obj.num = item.num || 0
 						list.push(obj)
 					})
-					window.originData.push({
+					window.originData.unshift({
 						...formData,
 						list,
 					})
 					initBillData(JSON.parse(JSON.stringify(window.originData)))
 					updateNewBillDataSavedStatus(false)
+					ElMessage.success('录入成功')
 				}
 			})
 		}
@@ -275,26 +277,6 @@ const comfirm = async () => {
 	position: absolute;
 	right: -4px;
 	top: -4px;
-}
-.add-icon {
-	width: 128px;
-    height: 128px;
-	border: 1px dashed var(--el-border-color);
-    border-radius: 6px;
-    cursor: pointer;
-    position: relative;
-    overflow: hidden;
-    transition: var(--el-transition-duration-fast);
-	display: inline-flex;
-    justify-content: center;
-    align-items: center;
-	font-size: 28px;
-    color: #8c939d;
-	background-color: var(--el-fill-color-lighter);
-	margin: 0 0 12px 0;
-}
-.add-icon:hover {
-	border-color: var(--el-color-primary);
 }
 </style>
 

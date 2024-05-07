@@ -4,6 +4,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 // Custom APIs for ipcMain
 const listen = {
 	ipcMainCallRenderer: (callback) => ipcRenderer.on('ipcMainCallRenderer', async (event, value) => callback(value)),
+	onsave: (callback) => ipcRenderer.on('onsave', async (event, value) => callback(value)),
 }
 
 // Custom APIs for renderer

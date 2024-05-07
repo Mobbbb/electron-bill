@@ -1,8 +1,7 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, globalShortcut } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
-import setMenuBar from './menu-bar'
 import ipcHandle from './ipc-handle'
 
 function createWindow() {
@@ -23,6 +22,17 @@ function createWindow() {
 
 	mainWindow.on('ready-to-show', () => {
 		mainWindow.show()
+	})
+
+	mainWindow.on('blur', () => {
+		// 失去焦点，注销快捷键
+		globalShortcut.unregisterAll()
+	})
+
+	mainWindow.on('focus', () => {
+		globalShortcut.register('CommandOrControl+S', () => {
+			mainWindow.webContents.send('onsave')
+		})
 	})
 
 	mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -59,8 +69,6 @@ app.whenReady().then(() => {
 
 	ipcHandle(mainWindow)
 
-	setMenuBar(mainWindow, app.name)
-
 	app.on('activate', function () {
 		// On macOS it's common to re-create a window in the app when the
 		// dock icon is clicked and there are no other windows open.
@@ -73,6 +81,7 @@ app.whenReady().then(() => {
 // for applications and their menu bar to stay active until the user quits
 // explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
+	globalShortcut.unregisterAll()
 	if (process.platform !== 'darwin') {
 		app.quit()
 	}

@@ -1,5 +1,4 @@
 import { getDateGroup, formatLimitData, getMonthTotal, transfromBillData } from '@renderer/utils'
-import { getAllMonthBetweenGap } from '@renderer/utils/libs'
 import { ElMessage } from 'element-plus'
 
 const app = {
@@ -13,6 +12,7 @@ const app = {
             limitData: {},
             limitConfigData: {},
             newBillDataHasSaved: true,
+            monthTotalYM: {},
         }
     },
     getters: {
@@ -25,6 +25,9 @@ const app = {
             if (!state.billData.allMonthArr.length) {
                 state.billData.allMonthArr = allMonthArr
             }
+        },
+        setMonthTotalYM(state, data) {
+            state.monthTotalYM = data
         },
         updateNewBillDataSavedStatus(state, status) {
             // const dateY = data.date.slice(0, 4)
@@ -107,6 +110,7 @@ const app = {
             const monthTotalYM = getMonthTotal(data)
             const groupData = getDateGroup(data, monthTotalYM)
             commit('setBillData', groupData)
+            commit('setMonthTotalYM', monthTotalYM)
         },
         async getLimitData({ state, commit }, username) {
             let result = await window.call.getUserData('limit.json', username)

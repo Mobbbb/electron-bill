@@ -40,9 +40,31 @@ export const inputRoute = {
     component: () => import('@renderer/single-page/input/index.vue'),
 }
 
+export const listRoute = {
+    path: '/list',
+    name: 'list',
+    meta: {
+        level: 0,
+        name: '列表',
+    },
+    component: () => import('@renderer/single-page/list/index.vue'),
+}
+
+export const configRoute = {
+    path: '/config',
+    name: 'config',
+    meta: {
+        level: 0,
+        name: '配置',
+    },
+    component: () => import('@renderer/single-page/config/index.vue'),
+}
+
 export const routes = [
     homeRoute,
     loginRoute,
     settingRoute,
     inputRoute,
+    listRoute,
+    configRoute,
 ]

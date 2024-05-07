@@ -22,15 +22,19 @@
 				</div>
 			</div>
 		</div>
-		<el-icon :size="20" class="config-set"><Tools /></el-icon>
-		<el-icon :size="20" class="document-add" @click="jumpToAdd"><Edit /></el-icon>
+		<el-icon :size="20" class="config-set" @click="jumpToSetting"><Tools /></el-icon>
+		<el-icon :size="20" class="document-add" @click="jumpToAdd">
+			<Edit />
+			<div class="red-point" v-if="!newBillDataHasSaved"></div>
+		</el-icon>
+		<el-icon :size="20" class="document-list" @click="jumpToList"><List /></el-icon>
 	</div>
 </template>
 
 <script setup>
 import { computed, ref, reactive, onMounted } from 'vue'
 import { useStore } from 'vuex'
-import { Tools, Edit } from '@element-plus/icons-vue'
+import { Tools, Edit, List } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'
 import DateComponent from '../components/Date.vue'
 
@@ -44,6 +48,7 @@ const toolbarLabel = reactive({
 	dayRight: '1970-01-01',
 })
 const billData = computed(() => store.state.app.billData)
+const newBillDataHasSaved = computed(() => store.state.app.newBillDataHasSaved)
 
 const dateConfig = computed(() => {
 	const oldestDate = billData.value.oldestDate || '1970-01'
@@ -80,6 +85,18 @@ const jumpToAdd = () => {
 		name: 'input',
 	})
 }
+
+const jumpToList = () => {
+	router.push({
+		name: 'list',
+	})
+}
+
+const jumpToSetting = () => {
+	router.push({
+		name: 'config',
+	})
+}
 </script>
 
 <style scoped>
@@ -88,7 +105,7 @@ const jumpToAdd = () => {
 	width: 100%;
 	position: relative;
 }
-.config-set,.document-add {
+.config-set, .document-add, .document-list {
 	position: absolute;
 	right: 22px;
 	top: 22px;
@@ -99,10 +116,19 @@ const jumpToAdd = () => {
 .document-add {
 	left: 22px;
 }
-.document-add:hover {
+.document-list {
+	right: 58px;
+}
+.document-add:hover, .config-set:hover, .document-list:hover {
 	color: #222;
 }
-.config-set:hover {
-	color: #222;
+.red-point {
+	position: absolute;
+	background-color: #e59800;
+	width: 6px;
+	height: 6px;
+	border-radius: 6px;
+    right: -11px;
+    top: 7px;
 }
 </style>

@@ -4,7 +4,7 @@
 		<el-steps style="max-width: 600px; margin: 20px auto 40px auto;" :active="0" simple>
 			<p style="text-align: center;width: 100%;font-weight: bold;">设置你的月开销</p>
 		</el-steps>
-		<el-form :rules="stepRules1" :model="formData" ref="ruleFormRef" label-position="right" 
+		<el-form :rules="stepRules" :model="formData" ref="ruleFormRef" label-position="right" 
 			label-width="auto"
 			style="max-width: 275px; margin: 20px auto;">
 			<el-form-item label="基础开销" prop="base">
@@ -52,7 +52,7 @@ const formData = reactive({
 	car: 0,
 })
 
-const stepRules1 = reactive({
+const stepRules = reactive({
 	base: [{ required: true, message: '请设置基础开销', trigger: 'change', validator: (rule, value, callback) => {
 		if (!value) callback(new Error())
 		else callback()

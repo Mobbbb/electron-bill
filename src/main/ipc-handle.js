@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { ipcMain, globalShortcut } from 'electron'
 import { join } from 'path'
 import { encrypto, decrypto } from './utils'
 const fs = require('fs')
@@ -7,6 +7,11 @@ export default (mainWindow) => {
 	// IPC test
 	ipcMain.on('ping', () => console.log('pong'))
 	ipcMain.handle('rendererCallIpcMain', () => 'ping')
+
+	globalShortcut.register('CommandOrControl+S', () => {
+		mainWindow.webContents.send('onsave')
+	})
+
 	ipcMain.handle('initAppData', async (event, { username, password, params }) => {
 		const { limitConfig, limitData, type } = params
 		try {
@@ -102,7 +107,7 @@ export default (mainWindow) => {
 			data: null,
 			success: true,
 			code: '200',
-			msg: '',
+			msg: '保存成功',
 		}
 	})
 

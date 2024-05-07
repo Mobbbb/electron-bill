@@ -295,4 +295,5 @@ export {
     getDateGroup,
     transfromBillData,
     getMonthTotal,
+    getBranchValue,
 }
