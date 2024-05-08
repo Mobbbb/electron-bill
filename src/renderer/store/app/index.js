@@ -13,6 +13,7 @@ const app = {
             limitConfigData: {},
             newBillDataHasSaved: true,
             monthTotalYM: {},
+            originLimitData: {},
         }
     },
     getters: {
@@ -25,6 +26,9 @@ const app = {
             if (!state.billData.allMonthArr.length) {
                 state.billData.allMonthArr = allMonthArr
             }
+        },
+        setOriginLimitData(state, data) {
+            state.originLimitData = data
         },
         setMonthTotalYM(state, data) {
             state.monthTotalYM = data
@@ -114,6 +118,7 @@ const app = {
         },
         async getLimitData({ state, commit }, username) {
             let result = await window.call.getUserData('limit.json', username)
+            commit('setOriginLimitData', result.data)
             const limitData = formatLimitData(result.data, state.limitConfigData)
             commit('setLimitData', limitData)
         },

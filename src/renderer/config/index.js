@@ -2,6 +2,8 @@ export const HOUSE_NAME = '房屋'
 
 export const CAR_NAME = '车辆'
 
+export const READONLY_NAME = [HOUSE_NAME, CAR_NAME]
+
 export const type = {
     "*": "集合",
     "1": "其他",

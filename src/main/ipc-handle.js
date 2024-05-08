@@ -41,11 +41,12 @@ export default (mainWindow) => {
 				data: null,
 				success: false,
 				code: '-2',
-				msg: 'Directory created failed',
+				msg: e,
 			}
 		}
 	})
 	
+	// 获取limitConfig文件
 	ipcMain.handle('getLimitConfig', async (event, username) => {
 		let lists = {}
 		const filePath = `./AppData/${username}/limitConfig/`
@@ -61,7 +62,7 @@ export default (mainWindow) => {
 				data: {},
 				success: false,
 				code: '-4058',
-				msg: 'No such file or directory',
+				msg: e,
 			}
 		}
 		return {
@@ -72,45 +73,7 @@ export default (mainWindow) => {
 		}
 	})
 
-	ipcMain.handle('updateUserData', async (event, { username, password, fileName, text }) => {
-		const filePath = `./AppData/${username}/${fileName}`
-		let json = JSON.stringify(text)
-
-		try {
-			if (password) { // 需要加密的文件
-				json = encrypto(json, password)
-				fs.renameSync(filePath, `${filePath}.temp`) // 将旧文件转为临时文件
-			}
-		} catch (e) {
-			return {
-				data: null,
-				success: false,
-				code: '-4',
-				msg: 'Encrypto failed',
-			}
-		}
-
-		try {
-			fs.writeFileSync(filePath, json)
-			fs.renameSync(`${filePath}.temp`, `${filePath}.bk`) // 将临时文件转为备份文件
-		} catch (e) {
-			fs.renameSync(`${filePath}.temp`, filePath) // 将临时文件恢复为原文件
-			return {
-				data: null,
-				success: false,
-				code: '-4',
-				msg: 'WriteFileSync or RenameSync failed',
-			}
-		}
-
-		return {
-			data: null,
-			success: true,
-			code: '200',
-			msg: '保存成功',
-		}
-	})
-
+	// 获取data文件或配置文件
 	ipcMain.handle('getUserData', async (event, { username, password, fileName }) => {
 		const filePath = `./AppData/${username}/${fileName}`
 		let lists = []
@@ -155,6 +118,148 @@ export default (mainWindow) => {
 			success: true,
 			code: '200',
 			msg: '',
+		}
+	})
+
+	// 更新limitConfig文件
+	ipcMain.handle('updateLimitConfig', async (event, { username, params }) => {
+		const path = `./AppData/${username}/limitConfig/`
+
+		try {
+			const files = fs.readdirSync(path)
+			files.forEach(async file => {
+				fs.renameSync(`${path}${file}`, `${path}${file}.temp`) // 将文件转为临时文件
+			})
+		} catch (e) {
+			return {
+				data: null,
+				success: false,
+				code: '-4',
+				msg: e,
+			}
+		}
+
+		try {
+			Object.keys(params).forEach(key => {
+				const filePath = `${path}${key}.json`
+				fs.writeFileSync(filePath, JSON.stringify(params[key])) // 写入新文件
+			})
+
+			const files = fs.readdirSync(path)
+			files.forEach(async file => {
+				if (file.indexOf('temp') > -1) {
+					fs.rmSync(`${path}${file}`, { recursive: true }) // 删除临时文件
+				}
+			})
+		} catch (e) {
+			const files = fs.readdirSync(path)
+			files.forEach(async file => {
+				if (file.indexOf('json') > -1) {
+					fs.rmSync(`${path}${file}`, { recursive: true }) // 删除新数据文件
+				}
+			})
+
+			const _files = fs.readdirSync(path)
+			_files.forEach(async file => {
+				if (file.indexOf('temp') > -1) {
+					const fileName = file.split('.')[0]
+					fs.renameSync(`${path}${file}`, `${path}${fileName}.json`) // 使用临时文件恢复旧文件
+				}
+			})
+
+			return {
+				data: null,
+				success: false,
+				code: '-4',
+				msg: e,
+			}
+		}
+
+		return {
+			data: null,
+			success: true,
+			code: '200',
+			msg: '保存成功',
+		}
+	})
+
+	// 更新配置文件
+	ipcMain.handle('updateConfigData', async (event, { username, password, fileName, text }) => {
+		const filePath = `./AppData/${username}/${fileName}`
+		let json = JSON.stringify(text)
+
+		try {
+			if (password) { // 需要加密的文件
+				json = encrypto(json, password)
+				fs.renameSync(filePath, `${filePath}.temp`) // 将旧文件转为临时文件
+			}
+		} catch (e) {
+			return {
+				data: null,
+				success: false,
+				code: '-4',
+				msg: e,
+			}
+		}
+
+		try {
+			fs.writeFileSync(filePath, json)
+			fs.renameSync(`${filePath}.temp`, `${filePath}.bk`) // 将临时文件转为备份文件
+		} catch (e) {
+			fs.renameSync(`${filePath}.temp`, filePath) // 将临时文件恢复为原文件
+			return {
+				data: null,
+				success: false,
+				code: '-4',
+				msg: e,
+			}
+		}
+
+		return {
+			data: null,
+			success: true,
+			code: '200',
+			msg: '保存成功',
+		}
+	})
+
+	// 更新data文件
+	ipcMain.handle('updateUserData', async (event, { username, password, fileName, text }) => {
+		const filePath = `./AppData/${username}/${fileName}`
+		let json = JSON.stringify(text)
+
+		try {
+			if (password) { // 需要加密的文件
+				json = encrypto(json, password)
+				fs.renameSync(filePath, `${filePath}.temp`) // 将旧文件转为临时文件
+			}
+		} catch (e) {
+			return {
+				data: null,
+				success: false,
+				code: '-4',
+				msg: e,
+			}
+		}
+
+		try {
+			fs.writeFileSync(filePath, json)
+			fs.renameSync(`${filePath}.temp`, `${filePath}.bk`) // 将临时文件转为备份文件
+		} catch (e) {
+			fs.renameSync(`${filePath}.temp`, filePath) // 将临时文件恢复为原文件
+			return {
+				data: null,
+				success: false,
+				code: '-4',
+				msg: e,
+			}
+		}
+
+		return {
+			data: null,
+			success: true,
+			code: '200',
+			msg: '保存成功',
 		}
 	})
 }
