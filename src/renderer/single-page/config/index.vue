@@ -3,8 +3,8 @@
 	<el-card class="config-page">
 		<Back class="nav-btn"></Back>
 		<div class="config-form">
-			<Limit ref="limitRef"></Limit>
-			<LimitConfig ref="limitConfigRef"></LimitConfig>
+			<Limit @update:originLimitData="updateOriginLimitData" ref="limitRef"></Limit>
+			<LimitConfig :usedOriginLimitData="usedOriginLimitData" ref="limitConfigRef"></LimitConfig>
 			<div style="height: 60px;"></div>
 		</div>
 		<div class="save-btn-wrap">
@@ -29,10 +29,24 @@ const store = new useStore()
 
 const limitConfigRef = ref()
 const limitRef = ref()
+const usedOriginLimitData = ref([])
+
+const updateOriginLimitData = (data) => {
+	usedOriginLimitData.value = []
+	Object.keys(data).forEach(key => {
+		usedOriginLimitData.value = usedOriginLimitData.value.concat(data[key])
+	})
+	usedOriginLimitData.value = [...new Set(usedOriginLimitData.value)]
+}
 
 const comfirm = async () => {
-	// limitConfigRef.value.comfirm()
-	limitRef.value.comfirm()
+	const res = await limitRef.value.comfirm()
+	if (res.success) {
+		ElMessage.success(res.msg)
+		limitConfigRef.value.comfirm()
+	} else {
+		ElMessage.error(res.msg)
+	}
 }
 </script>
 

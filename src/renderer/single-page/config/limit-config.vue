@@ -20,7 +20,7 @@
 						class="config-number-input" />
 				</el-form-item>
 				<el-button size="small" :icon="Minus" type="danger"
-					v-if="index"
+					v-if="formData.base.length > 1 && !props.usedOriginLimitData.includes(`base_${item.oldName}`)"
 					circle 
 					class="delete-icon"
 					@click.prevent="removeList('base', index, item)">
@@ -62,6 +62,7 @@
 						class="config-number-input" />
 				</el-form-item>
 				<el-button size="small" :icon="Minus" type="danger"
+					v-if="!props.usedOriginLimitData.includes(`house_${item.oldName}`)"
 					circle 
 					class="delete-icon"
 					@click.prevent="removeList('house', index, item)">
@@ -103,6 +104,7 @@
 						class="config-number-input" />
 				</el-form-item>
 				<el-button size="small" :icon="Minus" type="danger"
+					v-if="!props.usedOriginLimitData.includes(`car_${item.oldName}`)"
 					circle 
 					class="delete-icon"
 					@click.prevent="removeList('car', index, item)">
@@ -114,7 +116,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, defineExpose } from 'vue'
+import { ref, reactive, onMounted, computed, defineExpose, defineProps } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { Minus, Plus } from '@element-plus/icons-vue'
@@ -124,6 +126,8 @@ import Back from '../components/Back.vue'
 const route = useRoute()
 const router = useRouter()
 const store = new useStore()
+
+const props = defineProps(['usedOriginLimitData'])
 
 const formData = reactive({
 	base: [],
@@ -148,28 +152,40 @@ const removeList = (key, index) => {
 }
 
 const comfirm = async () => {
-	ruleFormRef.value.validate(async (valid, fields) => {
-		if (valid) {
-			const params = {}
-			Object.keys(formData).forEach(key => {
-				formData[key].forEach(item => {
-					if (item.name && item.value) {
-						if (!params[key]) {
-							params[key] = {}
-							params[key][item.name] = item.value
-						} else {
-							params[key][item.name] = item.value
-						}
-					}
-				})
-			})
-			const res = await window.call.updateLimitConfig({ params, username: sessionStorage.getItem('username') })
-			if (res.success) {
-				ElMessage.success(res.msg)
-			} else {
-				ElMessage.error(res.msg)
+	return new Promise(resolve => {
+		ruleFormRef.value.validate(async (valid, fields) => {
+			let resolveRes = {
+				success: false,
 			}
-		}
+			if (valid) {
+				const params = {}
+				const limitConfigParams = {}
+				Object.keys(formData).forEach(key => {
+					formData[key].forEach(item => {
+						if (item.oldName
+							&& props.usedOriginLimitData.includes(`${key}_${item.oldName}`)
+							&& item.oldName !== item.name) {
+							limitConfigParams[`${key}_${item.oldName}`] = `${key}_${item.name}`
+						}
+						if (item.name && item.value) {
+							if (!params[key]) {
+								params[key] = {}
+								params[key][item.name] = item.value
+							} else {
+								params[key][item.name] = item.value
+							}
+						}
+					})
+				})
+				const res = await window.call.updateLimitConfig({
+					params,
+					limitConfigParams,
+					username: sessionStorage.getItem('username')
+				})
+				resolveRes = res
+			}
+			resolve(resolveRes)
+		})
 	})
 }
 
@@ -178,6 +194,7 @@ onMounted(() => {
 		Object.keys(limitConfigData.value[key]).forEach(name => {
 			formData[key].push({
 				name,
+				oldName: name,
 				value: limitConfigData.value[key][name]
 			})
 		})

@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<span class="form-group-title" style="margin-top: 0;">· 限额</span>
+		<span class="form-group-title" style="margin-top: 0;">· 每月限额设置</span>
 		<div class="title-wrap">
 			<div class="date-picker-wrap">
 				<el-button  :icon="DArrowLeft" 
@@ -21,7 +21,8 @@
 							@click="changeCalendarYear(1)">
 				</el-button>
 			</div>
-			<el-select v-model="currentYearValue" multiple placeholder="统一设置月限额" style="width: 300px">
+			<el-select v-model="currentYearValue" multiple @change="changeYearValue"
+				placeholder="统一设置月限额" style="width: 300px">
 				<el-option-group
 					v-for="(group, index) in limitConfigOption"
 					:key="index"
@@ -42,11 +43,30 @@
 				</div>
 			</template>
 		</monthly-calendar>
+		<el-dialog v-model="showMonthEdit" :title="currentMonthParams.label"
+			width="300" top="30vh" :close-on-click-modal="false">
+			<el-select v-model="currentMonthParams.value" multiple>
+				<el-option-group
+					v-for="(group, index) in limitConfigOption"
+					:key="index"
+					:label="group.label">
+					<el-option
+						v-for="(item, _index) in group.children"
+						:key="`${index}${_index}`"
+						:label="item.label"
+						:value="item.value"/>
+				</el-option-group>
+			</el-select>
+			<template #footer>
+				<el-button size="small" @click="showMonthEdit = false">取消</el-button>
+				<el-button size="small" type="primary" @click="confirmMonthEdit">确定</el-button>
+			</template>
+		</el-dialog>
 	</div>
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, defineExpose } from 'vue'
+import { ref, reactive, onMounted, computed, defineExpose, defineEmits } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { Minus, Plus, DArrowLeft, DArrowRight  } from '@element-plus/icons-vue'
@@ -54,35 +74,47 @@ import { ElMessage } from 'element-plus'
 import Back from '../components/Back.vue'
 import MonthlyCalendar from './components/monthly-calendar.vue'
 import { dateFormat, calculateDate, toMonth } from 'umob'
+import { HOUSE_NAME, CAR_NAME } from '@renderer/config'
+
+const WORD_MAP = {
+	'house': HOUSE_NAME,
+	'car': CAR_NAME,
+	'base': '基础',
+}
+
+const emit = defineEmits(['update:originLimitData'])
 
 const route = useRoute()
 const router = useRouter()
 const store = new useStore()
 
+const showMonthEdit = ref(false)
+const currentMonthParams = ref([])
 const limitConfigOption = ref([])
-const limitData = ref({})
+const originLimitData = ref({})
 const monthYear = ref(dateFormat(new Date()))
 const currentYearValue = ref([])
 const limitConfigData = computed(() => store.state.app.limitConfigData)
 
 const changeYearValue = (value) => {
 	const year = new Date(monthYear.value).getFullYear()
-	limitData.value[year] = value
+	originLimitData.value[year] = value
+	emit('update:originLimitData', originLimitData.value)
 }
 
 const changeCalendarYear = (value) => {
     if (typeof value === 'number') {
         const year = new Date(monthYear.value).getFullYear()
         monthYear.value = `${year + value}-01-01`
-		// currentYearValue.value = limitData.value[year + value] || null
+		currentYearValue.value = originLimitData.value[year + value] || []
     }
 }
 
 const getCalendarCellClass = (data) => {
-	let itemData = limitData.value[data.day.slice(0, 7)] || limitData.value[data.day.slice(0, 4)]
+	let itemData = originLimitData.value[data.day.slice(0, 7)] || originLimitData.value[data.day.slice(0, 4)] || []
 
     let className = ''
-    if (itemData) {
+    if (itemData.length) {
         className = 'red-calendar-cell'
     } else {
         className = 'no-data-month-cell'
@@ -91,44 +123,66 @@ const getCalendarCellClass = (data) => {
 }
 
 const formatCalendarCellData = (data) => {
-	let itemData = limitData.value[data.day.slice(0, 7)] || limitData.value[data.day.slice(0, 4)]
+	let itemData = originLimitData.value[data.day.slice(0, 7)] || originLimitData.value[data.day.slice(0, 4)] || []
 
-	if (itemData) {
-		return itemData + '元'
+	let totalNum = 0
+	itemData.forEach(item => {
+		const keyArr = item.split('_')
+		totalNum += limitConfigData.value[keyArr[0]][keyArr[1]]
+	})
+
+	if (totalNum) {
+		return totalNum + '元'
 	} else {
 		return '--'
 	}
 }
 
 const clickMonthCalendar = (data) => {
+	currentMonthParams.value = {
+		day: data.day,
+		label: data.day.slice(0, 4) + '年' + data.label,
+		value: originLimitData.value[data.day.slice(0, 7)] || [],
+	}
+	showMonthEdit.value = true
+}
 
+const confirmMonthEdit = () => {
+	originLimitData.value[currentMonthParams.value.day] = currentMonthParams.value.value
+	emit('update:originLimitData', originLimitData.value)
+	showMonthEdit.value = false
 }
 
 const comfirm = async () => {
-	console.log(limitData.value)
+	const res = await window.call.updateConfigData({
+		text: JSON.stringify(originLimitData.value),
+		fileName: 'limit.json',
+		username: sessionStorage.getItem('username')
+	})
+	return res
 }
 
 onMounted(() => {
-	limitData.value = {
-		...store.state.app.limitData
+	originLimitData.value = {
+		...store.state.app.originLimitData
 	}
-	// currentYearValue.value = limitData.value[monthYear.value.slice(0, 4)]
+	emit('update:originLimitData', originLimitData.value)
+	currentYearValue.value = originLimitData.value[monthYear.value.slice(0, 4)]
 
 	limitConfigOption.value = []
 	Object.keys(limitConfigData.value).forEach(key => {
 		const item = {
-			label: key,
+			label: WORD_MAP[key] || key,
 			children: [],
 		}
 		Object.keys(limitConfigData.value[key]).forEach(name => {
 			item.children.push({
 				label: name,
-				value: limitConfigData.value[key][name]
+				value: `${key}_${name}`
 			})
 		})
 		limitConfigOption.value.push(item)
 	})
-	console.log(limitConfigOption)
 })
 
 defineExpose({
@@ -143,6 +197,8 @@ defineExpose({
 	align-items: center;
     max-width: 512px;
 	margin-top: 4px;
+	padding-right: 12px;
+	box-sizing: border-box;
 }
 .limit-monthly-calendar {
     max-width: 512px;
