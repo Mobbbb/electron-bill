@@ -86,6 +86,9 @@ const comfirm = async () => {
 			if (result.success) {
 				sessionStorage.setItem('username', username)
 				sessionStorage.setItem('userToken', password)
+				if (route.query.rememberUsername) {
+					localStorage.setItem('bill-username', username)
+				}
 				await initData({ username })
 				router.push({
 					name: 'home',

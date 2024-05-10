@@ -15,8 +15,7 @@ const initData = (value) => store.dispatch('app/initData', value)
 const updateNewBillDataSavedStatus = (value) => store.commit('app/updateNewBillDataSavedStatus', value)
 
 if (!billData.value.dateGroupYM) {
-	const username = sessionStorage.getItem('username')
-	initData({ username })
+	initData({ username: sessionStorage.getItem('username') })
 }
 
 window.listen.onsave(async () => {

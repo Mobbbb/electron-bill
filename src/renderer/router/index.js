@@ -15,12 +15,12 @@ router.beforeEach((to, from, next) => {
         } else {
             // 未登录且前往的不是登录页
             next({
-                name: 'login'
+                name: 'login',
             })
         }
     } else if (userToken && to.name === 'login') {
         next({
-            name: 'home'
+            name: 'home',
         })
     } else {
         next()

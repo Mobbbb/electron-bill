@@ -53,6 +53,11 @@ const formData = reactive({
 	password: '',
 })
 
+if (localStorage.getItem('bill-username')) {
+	formData.username = localStorage.getItem('bill-username')
+	rememberUsername.value = true
+}
+
 const validatePass1 = (rule, value, callback) => {
 	if (!value) callback(new Error('请填写账户'))
 	if (checkStatus.value) {
@@ -92,6 +97,11 @@ const handleSubmit = async () => {
 			sessionStorage.setItem('username', formData.username)
 			sessionStorage.setItem('userToken', password)
 			window.originData = JSON.parse(JSON.stringify(data))
+			if (rememberUsername.value) {
+				localStorage.setItem('bill-username', formData.username)
+			} else {
+				localStorage.removeItem('bill-username')
+			}
 			await initData({ outsideData: data, username: formData.username })
 			router.push({
 				name: 'home',
@@ -101,12 +111,16 @@ const handleSubmit = async () => {
 				confirmButtonText: '确定',
       			cancelButtonText: '取消',
 			}).then(() => {
+				const routeQuery = {
+					username: formData.username,
+					password,
+				}
+				if (rememberUsername.value) {
+					routeQuery.rememberUsername = rememberUsername.value
+				}
 				router.push({
 					name: 'setting',
-					query: {
-						username: formData.username,
-						password,
-					},
+					query: routeQuery,
 				})
 			}).catch(() => {})
 		} else if (valid && recoverStatus) {
