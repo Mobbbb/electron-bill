@@ -1,6 +1,7 @@
 import { ipcMain, globalShortcut } from 'electron'
 import { join } from 'path'
 import { encrypto, decrypto } from './utils'
+import { typeJson } from './config'
 const fs = require('fs')
 
 function getFileData({ username, password, fileName }) {
@@ -60,7 +61,7 @@ export default (mainWindow) => {
 	})
 
 	ipcMain.handle('initAppData', async (event, { username, password, params }) => {
-		const { limitConfig, limitData, type } = params
+		const { limitConfig, limitData } = params
 		try {
 			if (!fs.existsSync(`./AppData/${username}`)) {
 				fs.mkdirSync(`./AppData/${username}`)
@@ -74,7 +75,7 @@ export default (mainWindow) => {
 			fs.writeFileSync(`./AppData/${username}/borrow.json`, '{}')
 			fs.writeFileSync(`./AppData/${username}/data`, encrypto('[]', password))
 			fs.writeFileSync(`./AppData/${username}/limit.json`, JSON.stringify(limitData))
-			fs.writeFileSync(`./AppData/${username}/type.json`, JSON.stringify(type))
+			fs.writeFileSync(`./AppData/${username}/type.json`, JSON.stringify(typeJson))
 
 			return {
 				data: null,

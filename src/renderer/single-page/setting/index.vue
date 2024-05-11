@@ -40,7 +40,6 @@
 import { ref, reactive } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { type } from '@renderer/config'
 
 const route = useRoute()
 const router = useRouter()
@@ -81,7 +80,6 @@ const comfirm = async () => {
 			const result = await window.call.initAppData(username, password, {
 				limitConfig,
 				limitData,
-				type,
 			})
 			if (result.success) {
 				sessionStorage.setItem('username', username)

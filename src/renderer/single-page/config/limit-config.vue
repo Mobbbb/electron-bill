@@ -122,7 +122,6 @@ import { useStore } from 'vuex'
 import { Minus, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { HOUSE_ID, CAR_ID } from '@renderer/config'
-import Back from '../components/Back.vue'
 
 const route = useRoute()
 const router = useRouter()

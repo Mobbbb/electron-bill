@@ -44,10 +44,10 @@
 							<el-option label="从配置文件中选择" :value="2" />
 						</el-select>
 					</el-form-item>
-					<el-form-item v-if="formData.type === '*'" label="二级类别"
+					<el-form-item v-if="formData.type === ALL_ID" label="二级类别"
 						:prop="`listData.${index}.type`"
 						:rules="[{ required: true, message: '请填写', trigger: 'change' }]">
-						<el-select v-model="item.type" placeholder="请选择类别">
+						<el-select v-model="item.type" placeholder="请选择类别" @change="changeSecondType($event, item)">
 							<el-option
 								v-for="(item, key) in secondTypeMap"
 								:key="key"
@@ -55,11 +55,8 @@
 								:value="key" />
 						</el-select>
 					</el-form-item>
-					<el-form-item label="二级名称"
-						:prop="`listData.${index}.label`">
-						<el-input
-							placeholder="请输入名称"
-							v-model="item.label" />
+					<el-form-item label="二级名称" :prop="`listData.${index}.label`">
+						<el-input placeholder="请输入名称" v-model="item.label" />
 					</el-form-item>
 					<el-form-item v-if="item.dataType === 0" label="金额"
 						:prop="`listData.${index}.num`"
@@ -96,7 +93,7 @@
 					<el-form-item v-if="item.dataType === 2" label="配置文件"
 						:prop="`listData.${index}.configFile`"
 						:rules="[{ required: true, message: '请选择', trigger: 'change' }]">
-						<el-select v-model="item.configFile" placeholder="请选择配置文件">
+						<el-select v-model="item.configFile" placeholder="请选择配置文件" @change="changeConfigFile(item)">
 							<el-option
 								v-for="item in configFileData"
 								:key="item"
@@ -135,7 +132,7 @@
 import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { HOUSE_ID, CAR_ID } from '@renderer/config'
+import { HOUSE_ID, CAR_ID, ALL_ID } from '@renderer/config'
 import { Delete, Plus, Minus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import Back from '../components/Back.vue'
@@ -177,7 +174,7 @@ const configData = computed(() => store.state.app.configData)
 const secondTypeMap = computed(() => {
 	let obj = {}
 	Object.keys(configData.value.typeMap).forEach(key => {
-		if (key !== '*') {
+		if (key !== ALL_ID) {
 			obj[key] = configData.value.typeMap[key]
 		}
 	})
@@ -203,19 +200,56 @@ const removeList = (item) => {
 }
 
 const changeType = (value) => {
+	if (value !== ALL_ID) { // 一级类型确定时移除所有二级类型
+		dynamicFormData.listData.forEach(item => {
+			delete item.type
+		})
+	}
 	if (configFileData.value.includes(WORD_MAP_EN[value])) {
 		if (value === HOUSE_ID) {
 			dynamicFormData.listData[0].dataType = 2
 			dynamicFormData.listData[0].configFile = WORD_MAP_EN[HOUSE_ID]
+			dynamicFormData.listData[0].selectNum = ''
 		} else if (value === CAR_ID) {
 			dynamicFormData.listData[0].dataType = 2
 			dynamicFormData.listData[0].configFile = WORD_MAP_EN[CAR_ID]
+			dynamicFormData.listData[0].selectNum = ''
 		} else {
 			dynamicFormData.listData[0].dataType = 0
+			dynamicFormData.listData[0].configFile = ''
+			dynamicFormData.listData[0].selectNum = ''
 		}
 	} else {
 		dynamicFormData.listData[0].dataType = 0
+		dynamicFormData.listData[0].configFile = ''
+		dynamicFormData.listData[0].selectNum = ''
 	}
+}
+
+const changeSecondType = (value, item) => {
+	if (configFileData.value.includes(WORD_MAP_EN[value])) {
+		if (value === HOUSE_ID) {
+			item.dataType = 2
+			item.configFile = WORD_MAP_EN[HOUSE_ID]
+			item.selectNum = ''
+		} else if (value === CAR_ID) {
+			item.dataType = 2
+			item.configFile = WORD_MAP_EN[CAR_ID]
+			item.selectNum = ''
+		} else {
+			item.dataType = 0
+			item.configFile = ''
+			item.selectNum = ''
+		}
+	} else {
+		item.dataType = 0
+		item.configFile = ''
+		item.selectNum = ''
+	}
+}
+
+const changeConfigFile = (item) => {
+	item.selectNum = ''
 }
 
 const comfirm = async () => {
@@ -228,7 +262,7 @@ const comfirm = async () => {
 						let obj = {}
 						if (item.label) obj.label = item.label
 						// 二级类型只有在一级类型不确定时才填写
-						if (formData.type === '*') obj.type = item.type
+						if (formData.type === ALL_ID) obj.type = item.type
 						if (item.dataType === 1) {
 							obj.rest = item.rest
 							obj.function = 'getBranchValue'

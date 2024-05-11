@@ -5,6 +5,10 @@
 		<div class="config-form">
 			<Limit @update:originLimitData="updateOriginLimitData" :oldNameList="oldNameList" ref="limitRef"></Limit>
 			<LimitConfig @update:oldNameList="updateOldNameList" :usedOriginLimitData="usedOriginLimitData" ref="limitConfigRef"></LimitConfig>
+			<el-divider>
+				<el-icon><star-filled /></el-icon>
+			</el-divider>
+			<Type></Type>
 			<div style="height: 60px;"></div>
 		</div>
 		<div class="save-btn-wrap">
@@ -17,11 +21,12 @@
 import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { Minus, Plus } from '@element-plus/icons-vue'
+import { StarFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import Back from '../components/Back.vue'
 import LimitConfig from './limit-config.vue'
 import Limit from './Limit.vue'
+import Type from './Type.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -111,7 +116,7 @@ const comfirm = async () => {
 }
 .form-group-title {
 	display: inline-block;
-	margin: 20px 0 4px 0;
+	margin: 20px 0 6px 0;
 	font-weight: bold;
 }
 </style>

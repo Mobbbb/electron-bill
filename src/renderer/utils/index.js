@@ -1,4 +1,5 @@
 import { getAllMonthBetweenGap, dateFormat } from './libs'
+import { ALL_ID } from '@renderer/config'
 import store from '@renderer/store'
 
 function getMonthTotal(data) {
@@ -38,7 +39,7 @@ function createGroupObjByType(dataList = []) {
     const groupObj = {}
     dataList.forEach(item => {
         let type = item.type
-        if (item.type === '*') type = item.label || item.date || ''
+        if (item.type === ALL_ID) type = item.label || item.date || ''
         if (!groupObj[type]) {
             groupObj[type] = []
         }
@@ -51,7 +52,7 @@ function createGroupObjByType(dataList = []) {
 function reSortDataListByType(dataList = []) {
     let arr = []
     dataList.forEach(item => {
-        if (item.type === '*') {
+        if (item.type === ALL_ID) {
             const obj = {}
             item.list.forEach(cell => {
                 const type = cell.type
@@ -94,7 +95,7 @@ function splitGroupObjByType(dataList = []) {
     const groupObj = {}
     dataList.forEach(item => {
         let type = item.type
-        if (type === '*') {
+        if (type === ALL_ID) {
             item.list.forEach(cell => {
                 type = cell.type
                 if (!groupObj[type]) {
@@ -121,7 +122,7 @@ function splitGroupObjByType(dataList = []) {
 function splitAndFilterDataList(dataList = [], filterType) {
     const arr = []
     dataList.forEach(item => {
-        if (item.type === '*') {
+        if (item.type === ALL_ID) {
             item.list.forEach(cell => {
                 arr.push({
                     type: cell.type,
@@ -251,14 +252,21 @@ function getDateGroup(data, monthTotalYM) {
     const dateGroupYM = {}
     const allMonthArr = []
     const usedKeyArr = []
+    const usedTypeArr = []
 
     data.forEach(item => {
+        if (item.type) {
+            usedTypeArr.push(item.type)
+        }
         item.list.forEach(cell => {
             if (cell.function === 'getBranchValue') {
                 cell.num = getBranchValue(item.date, cell.rest || 0, monthTotalYM)
             }
             if (cell.key) {
                 usedKeyArr.push(cell.key)
+            }
+            if (cell.type) {
+                usedTypeArr.push(cell.type)
             }
         })
 
@@ -279,6 +287,7 @@ function getDateGroup(data, monthTotalYM) {
         dateGroupYM: dateGroupYM,
         dateGroupY: dateGroupY,
         usedKeyArr,
+        usedTypeArr: [...new Set(usedTypeArr)],
         allMonthArr: getAllMonthBetweenGap(allMonthArr[0], allMonthArr[allMonthArr.length - 1]),
     }
 }
