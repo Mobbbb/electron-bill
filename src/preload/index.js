@@ -14,7 +14,7 @@ const call = {
 	getLimitConfig: (username) => ipcRenderer.invoke('getLimitConfig', username),
 	getUserData: (fileName, username, password) => ipcRenderer.invoke('getUserData', { username, fileName, password }),
 	updateUserData: ({ username, password, fileName, text }) => ipcRenderer.invoke('updateUserData', { username, password, fileName, text }),
-	updateLimitConfig: ({ username, params, limitConfigParams }) => ipcRenderer.invoke('updateLimitConfig', { username, params, limitConfigParams }),
+	updateLimitConfig: ({ username, password, params, originData, limitConfigParams }) => ipcRenderer.invoke('updateLimitConfig', { username, password, params, originData, limitConfigParams }),
 	updateConfigData: ({ username, fileName, text }) => ipcRenderer.invoke('updateConfigData', { username, fileName, text }),
 }
 

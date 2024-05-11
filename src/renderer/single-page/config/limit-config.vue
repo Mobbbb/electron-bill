@@ -20,7 +20,7 @@
 						class="config-number-input" />
 				</el-form-item>
 				<el-button size="small" :icon="Minus" type="danger"
-					v-if="formData.base.length > 1 && !props.usedOriginLimitData.includes(`base_${item.oldName}`)"
+					v-if="formData.base.length > 1 && !props.usedOriginLimitData.includes(item.oldName) && !usedKeyArr.includes(item.oldName)"
 					circle 
 					class="delete-icon"
 					@click.prevent="removeList('base', index, item)">
@@ -28,7 +28,7 @@
 			</div>
 			<div class="add-icon" @click="addList('base')"><el-icon><Plus /></el-icon></div>
 		</div>
-		<span class="form-group-title">· 房贷</span>
+		<span class="form-group-title">· {{ configData.typeMap[HOUSE_ID] }}</span>
 		<div class="data-lists-wrap">
 			<div class="data-lists-item" v-for="(item, index) in formData.house">
 				<el-form-item label="名称" 
@@ -62,7 +62,7 @@
 						class="config-number-input" />
 				</el-form-item>
 				<el-button size="small" :icon="Minus" type="danger"
-					v-if="!props.usedOriginLimitData.includes(`house_${item.oldName}`)"
+					v-if="!props.usedOriginLimitData.includes(item.oldName) && !usedKeyArr.includes(item.oldName)"
 					circle 
 					class="delete-icon"
 					@click.prevent="removeList('house', index, item)">
@@ -70,7 +70,7 @@
 			</div>
 			<div class="add-icon" @click="addList('house')"><el-icon><Plus /></el-icon></div>
 		</div>
-		<span class="form-group-title">· 车贷</span>
+		<span class="form-group-title">· {{ configData.typeMap[CAR_ID] }}</span>
 		<div class="data-lists-wrap">
 			<div class="data-lists-item" v-for="(item, index) in formData.car">
 				<el-form-item label="名称"
@@ -104,7 +104,7 @@
 						class="config-number-input" />
 				</el-form-item>
 				<el-button size="small" :icon="Minus" type="danger"
-					v-if="!props.usedOriginLimitData.includes(`car_${item.oldName}`)"
+					v-if="!props.usedOriginLimitData.includes(item.oldName) && !usedKeyArr.includes(item.oldName)"
 					circle 
 					class="delete-icon"
 					@click.prevent="removeList('car', index, item)">
@@ -116,11 +116,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, defineExpose, defineProps } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { Minus, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { HOUSE_ID, CAR_ID } from '@renderer/config'
 import Back from '../components/Back.vue'
 
 const route = useRoute()
@@ -128,6 +129,7 @@ const router = useRouter()
 const store = new useStore()
 
 const props = defineProps(['usedOriginLimitData'])
+const emit = defineEmits(['update:oldNameList'])
 
 const formData = reactive({
 	base: [],
@@ -139,6 +141,7 @@ const ruleFormRef = ref()
 const configData = computed(() => store.state.app.configData)
 const limitConfigData = computed(() => store.state.app.limitConfigData)
 const originLimitData = computed(() => store.state.app.originLimitData)
+const usedKeyArr = computed(() => store.state.app.billData.usedKeyArr || [])
 
 const addList = (key) => {
 	formData[key].push({
@@ -149,6 +152,11 @@ const addList = (key) => {
 
 const removeList = (key, index) => {
 	formData[key].splice(index, 1)
+	let arr = []
+	Object.keys(formData).forEach(name => {
+		arr = arr.concat(formData[name].map(item => item.oldName))
+	})
+	emit('update:oldNameList', arr)
 }
 
 const comfirm = async () => {
@@ -163,9 +171,9 @@ const comfirm = async () => {
 				Object.keys(formData).forEach(key => {
 					formData[key].forEach(item => {
 						if (item.oldName
-							&& props.usedOriginLimitData.includes(`${key}_${item.oldName}`)
-							&& item.oldName !== item.name) {
-							limitConfigParams[`${key}_${item.oldName}`] = `${key}_${item.name}`
+							&& props.usedOriginLimitData.includes(item.oldName)
+							&& item.oldName !== `${key}_${item.name}`) {
+							limitConfigParams[item.oldName] = `${key}_${item.name}`
 						}
 						if (item.name && item.value) {
 							if (!params[key]) {
@@ -177,10 +185,26 @@ const comfirm = async () => {
 						}
 					})
 				})
+				let originData = []
+				let hasChanged = false
+				if (Object.keys(limitConfigParams).length) {
+					originData = JSON.parse(JSON.stringify(window.originData))
+					originData.forEach(item => {
+						item.list.forEach(cell => {
+							if (limitConfigParams[cell.key]) {
+								hasChanged= true
+								cell.key = limitConfigParams[cell.key]
+							}
+						})
+					})
+				}
+				
 				const res = await window.call.updateLimitConfig({
 					params,
+					originData: hasChanged ? originData : [],
 					limitConfigParams,
-					username: sessionStorage.getItem('username')
+					username: sessionStorage.getItem('username'),
+					password: sessionStorage.getItem('userToken'),
 				})
 				resolveRes = res
 			}
@@ -189,20 +213,29 @@ const comfirm = async () => {
 	})
 }
 
-onMounted(() => {
+const init = () => {
+	const arr = []
+	Object.keys(formData).forEach(name => formData[name] = [])
 	Object.keys(limitConfigData.value).forEach(key => {
 		Object.keys(limitConfigData.value[key]).forEach(name => {
 			formData[key].push({
 				name,
-				oldName: name,
+				oldName: `${key}_${name}`,
 				value: limitConfigData.value[key][name]
 			})
+			arr.push(`${key}_${name}`)
 		})
 	})
+	emit('update:oldNameList', arr)
+}
+
+onMounted(() => {
+	init()
 })
 
 defineExpose({
 	comfirm,
+	init,
 })
 </script>
 
@@ -217,7 +250,7 @@ defineExpose({
     background-color: var(--el-card-bg-color);
     color: var(--el-text-color-primary);
     transition: var(--el-transition-duration);
-	width: 150px;
+	width: 185px;
 	padding: 18px 12px 0 12px;
 	box-shadow: var(--el-box-shadow-light);
 	margin-left: 8px;

@@ -48,7 +48,6 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { HOUSE_NAME, CAR_NAME } from '@renderer/config'
 import { getBranchValue, transfromBillData } from '@renderer/utils'
 import { Delete, Plus, Minus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'

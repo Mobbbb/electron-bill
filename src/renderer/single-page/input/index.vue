@@ -100,7 +100,7 @@
 							<el-option
 								v-for="item in configFileData"
 								:key="item"
-								:label="WORD_MAP[item] || item"
+								:label="configData.typeMap[WORD_MAP[item]] || item"
 								:value="item" />
 						</el-select>
 					</el-form-item>
@@ -135,18 +135,18 @@
 import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { HOUSE_NAME, CAR_NAME } from '@renderer/config'
+import { HOUSE_ID, CAR_ID } from '@renderer/config'
 import { Delete, Plus, Minus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import Back from '../components/Back.vue'
 
 const WORD_MAP = {
-	'house': HOUSE_NAME,
-	'car': CAR_NAME,
+	'house': HOUSE_ID,
+	'car': CAR_ID,
 }
 
-const WORD_MAP_CN = {}
-Object.keys(WORD_MAP).forEach(key => WORD_MAP_CN[WORD_MAP[key]] = key)
+const WORD_MAP_EN = {}
+Object.keys(WORD_MAP).forEach(key => WORD_MAP_EN[WORD_MAP[key]] = key)
 
 const route = useRoute()
 const router = useRouter()
@@ -176,9 +176,9 @@ const dynamicFormRef = ref()
 const configData = computed(() => store.state.app.configData)
 const secondTypeMap = computed(() => {
 	let obj = {}
-	Object.keys(store.state.app.configData.typeMap).forEach(key => {
+	Object.keys(configData.value.typeMap).forEach(key => {
 		if (key !== '*') {
-			obj[key] = store.state.app.configData.typeMap[key]
+			obj[key] = configData.value.typeMap[key]
 		}
 	})
 	return obj
@@ -203,13 +203,13 @@ const removeList = (item) => {
 }
 
 const changeType = (value) => {
-	if (configFileData.value.includes(WORD_MAP_CN[configData.value.typeMap[value]])) {
-		if (configData.value.typeMap[value] === HOUSE_NAME) {
+	if (configFileData.value.includes(WORD_MAP_EN[value])) {
+		if (value === HOUSE_ID) {
 			dynamicFormData.listData[0].dataType = 2
-			dynamicFormData.listData[0].configFile = WORD_MAP_CN[HOUSE_NAME]
-		} else if (configData.value.typeMap[value] === CAR_NAME) {
+			dynamicFormData.listData[0].configFile = WORD_MAP_EN[HOUSE_ID]
+		} else if (value === CAR_ID) {
 			dynamicFormData.listData[0].dataType = 2
-			dynamicFormData.listData[0].configFile = WORD_MAP_CN[CAR_NAME]
+			dynamicFormData.listData[0].configFile = WORD_MAP_EN[CAR_ID]
 		} else {
 			dynamicFormData.listData[0].dataType = 0
 		}

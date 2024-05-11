@@ -22,7 +22,7 @@
 				</el-button>
 			</div>
 			<el-select v-model="currentYearValue" multiple @change="changeYearValue"
-				placeholder="统一设置月限额" style="width: 300px">
+				placeholder="统一设置月限额" style="width: 400px">
 				<el-option-group
 					v-for="(group, index) in limitConfigOption"
 					:key="index"
@@ -31,6 +31,7 @@
 						v-for="(item, _index) in group.children"
 						:key="`${index}${_index}`"
 						:label="item.label"
+						:disabled="!props.oldNameList.includes(item.value)"
 						:value="item.value"/>
 				</el-option-group>
 			</el-select>
@@ -44,7 +45,7 @@
 			</template>
 		</monthly-calendar>
 		<el-dialog v-model="showMonthEdit" :title="currentMonthParams.label"
-			width="300" top="30vh" :close-on-click-modal="false">
+			width="400" top="30vh" :close-on-click-modal="false">
 			<el-select v-model="currentMonthParams.value" multiple>
 				<el-option-group
 					v-for="(group, index) in limitConfigOption"
@@ -54,6 +55,7 @@
 						v-for="(item, _index) in group.children"
 						:key="`${index}${_index}`"
 						:label="item.label"
+						:disabled="!props.oldNameList.includes(item.value)"
 						:value="item.value"/>
 				</el-option-group>
 			</el-select>
@@ -66,7 +68,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed, defineExpose, defineEmits } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { Minus, Plus, DArrowLeft, DArrowRight  } from '@element-plus/icons-vue'
@@ -74,14 +76,15 @@ import { ElMessage } from 'element-plus'
 import Back from '../components/Back.vue'
 import MonthlyCalendar from './components/monthly-calendar.vue'
 import { dateFormat, calculateDate, toMonth } from 'umob'
-import { HOUSE_NAME, CAR_NAME } from '@renderer/config'
+import { HOUSE_ID, CAR_ID } from '@renderer/config'
 
 const WORD_MAP = {
-	'house': HOUSE_NAME,
-	'car': CAR_NAME,
+	'house': HOUSE_ID,
+	'car': CAR_ID,
 	'base': '基础',
 }
 
+const props = defineProps(['oldNameList'])
 const emit = defineEmits(['update:originLimitData'])
 
 const route = useRoute()
@@ -95,6 +98,7 @@ const originLimitData = ref({})
 const monthYear = ref(dateFormat(new Date()))
 const currentYearValue = ref([])
 const limitConfigData = computed(() => store.state.app.limitConfigData)
+const typeMap = computed(() => store.state.app.configData.typeMap)
 
 const changeYearValue = (value) => {
 	const year = new Date(monthYear.value).getFullYear()
@@ -162,7 +166,7 @@ const comfirm = async () => {
 	return res
 }
 
-onMounted(() => {
+const init = () => {
 	originLimitData.value = {
 		...store.state.app.originLimitData
 	}
@@ -171,8 +175,9 @@ onMounted(() => {
 
 	limitConfigOption.value = []
 	Object.keys(limitConfigData.value).forEach(key => {
+		const id = WORD_MAP[key] || key
 		const item = {
-			label: WORD_MAP[key] || key,
+			label: typeMap.value[id] || id,
 			children: [],
 		}
 		Object.keys(limitConfigData.value[key]).forEach(name => {
@@ -183,10 +188,15 @@ onMounted(() => {
 		})
 		limitConfigOption.value.push(item)
 	})
+}
+
+onMounted(() => {
+	init()
 })
 
 defineExpose({
 	comfirm,
+	init,
 })
 </script>
 
@@ -195,13 +205,13 @@ defineExpose({
 	display: flex;
 	justify-content: space-between;
 	align-items: center;
-    max-width: 512px;
+    max-width: 600px;
 	margin-top: 4px;
 	padding-right: 12px;
 	box-sizing: border-box;
 }
 .limit-monthly-calendar {
-    max-width: 512px;
+    max-width: 600px;
 }
 .date-cell {
     height: 100%;

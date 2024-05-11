@@ -92,7 +92,7 @@ export default (mainWindow) => {
 			}
 		}
 	})
-	
+
 	// 获取limitConfig文件
 	ipcMain.handle('getLimitConfig', async (event, username) => {
 		let lists = {}
@@ -126,7 +126,13 @@ export default (mainWindow) => {
 	})
 
 	// 更新limitConfig文件
-	ipcMain.handle('updateLimitConfig', async (event, { username, params, limitConfigParams = {} }) => {
+	ipcMain.handle('updateLimitConfig', async (event, {
+		username,
+		password,
+		params,
+		originData = [],
+		limitConfigParams = {}
+	}) => {
 		const path = `./AppData/${username}/limitConfig/`
 
 		const res = getFileData({ username, fileName: 'limit.json' })
@@ -168,6 +174,16 @@ export default (mainWindow) => {
 				const limitPath = `./AppData/${username}/limit.json`
 				fs.renameSync(limitPath, `${limitPath}.temp`) // 将文件转为临时文件
 				fs.writeFileSync(limitPath, JSON.stringify(limitData)) // 写入新文件
+
+				if (originData.length) {
+					const dataPath = `./AppData/${username}/data`
+					let json = JSON.stringify(originData)
+					json = encrypto(json, password)
+					fs.renameSync(dataPath, `${dataPath}.temp`) // 将旧文件转为临时文件
+					fs.writeFileSync(dataPath, json)
+					fs.renameSync(`${dataPath}.temp`, `${dataPath}.bk`) // 将临时文件转为备份文件
+				}
+
 				if (fs.existsSync(`${limitPath}.temp`)) {
 					fs.rmSync(`${limitPath}.temp`, { recursive: true }) // 删除临时文件
 				}
@@ -176,20 +192,18 @@ export default (mainWindow) => {
 			// limit.json恢复相关
 			const limitPath = `./AppData/${username}/limit.json`
 			if (fs.existsSync(`${limitPath}.temp`)) {
-				if (fs.existsSync(limitPath)) fs.rmSync(limitPath, { recursive: true })
 				fs.renameSync(`${limitPath}.temp`, limitPath) // 使用临时文件恢复旧文件
-				fs.rmSync(`${limitPath}.temp`, { recursive: true }) // 删除临时文件
 			}
 
+			// data恢复相关
+			const dataPath = `./AppData/${username}/data`
+			if (fs.existsSync(`${dataPath}.temp`)) {
+				fs.renameSync(`${dataPath}.temp`, dataPath) // 使用临时文件恢复旧文件
+			}
+
+			// limitConfig恢复相关
 			const files = fs.readdirSync(path)
 			files.forEach(async file => {
-				if (file.indexOf('json') > -1) {
-					fs.rmSync(`${path}${file}`, { recursive: true }) // 删除新数据文件
-				}
-			})
-
-			const _files = fs.readdirSync(path)
-			_files.forEach(async file => {
 				if (file.indexOf('temp') > -1) {
 					const fileName = file.split('.')[0]
 					fs.renameSync(`${path}${file}`, `${path}${fileName}.json`) // 使用临时文件恢复旧文件

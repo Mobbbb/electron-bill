@@ -250,11 +250,15 @@ function getDateGroup(data, monthTotalYM) {
     const dateGroupY = {}
     const dateGroupYM = {}
     const allMonthArr = []
+    const usedKeyArr = []
 
     data.forEach(item => {
         item.list.forEach(cell => {
             if (cell.function === 'getBranchValue') {
                 cell.num = getBranchValue(item.date, cell.rest || 0, monthTotalYM)
+            }
+            if (cell.key) {
+                usedKeyArr.push(cell.key)
             }
         })
 
@@ -274,6 +278,7 @@ function getDateGroup(data, monthTotalYM) {
         oldestDate: allMonthArr[0],
         dateGroupYM: dateGroupYM,
         dateGroupY: dateGroupY,
+        usedKeyArr,
         allMonthArr: getAllMonthBetweenGap(allMonthArr[0], allMonthArr[allMonthArr.length - 1]),
     }
 }
