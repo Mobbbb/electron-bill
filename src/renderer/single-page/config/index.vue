@@ -5,11 +5,12 @@
 		<div class="config-form">
 			<Limit @update:originLimitData="updateOriginLimitData" :oldNameList="oldNameList" ref="limitRef"></Limit>
 			<LimitConfig @update:oldNameList="updateOldNameList" :usedOriginLimitData="usedOriginLimitData" ref="limitConfigRef"></LimitConfig>
-			<el-divider>
-				<el-icon><star-filled /></el-icon>
-			</el-divider>
-			<Type></Type>
-			<div style="height: 60px;"></div>
+			<el-divider><el-icon><star-filled /></el-icon></el-divider>
+			<Borrow ref="borrowRef"></Borrow>
+			<el-divider><el-icon><star-filled /></el-icon></el-divider>
+			<Type ref="typeRef"></Type>
+			<el-button type="info" size="small" plain @click="logout" class="logout-btn">退出登录</el-button>
+			<div style="height: 52px;"></div>
 		</div>
 		<div class="save-btn-wrap">
 			<el-button type="primary" class="save-btn" @click="comfirm">保存</el-button>
@@ -27,6 +28,7 @@ import Back from '../components/Back.vue'
 import LimitConfig from './limit-config.vue'
 import Limit from './Limit.vue'
 import Type from './Type.vue'
+import Borrow from './Borrow.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -34,6 +36,8 @@ const store = new useStore()
 
 const limitConfigRef = ref()
 const limitRef = ref()
+const typeRef = ref()
+const borrowRef = ref()
 const usedOriginLimitData = ref([])
 const oldNameList = ref([])
 
@@ -51,20 +55,51 @@ const updateOldNameList = (data) => {
 	oldNameList.value = data
 }
 
+const logout = () => {
+	sessionStorage.removeItem('username')
+	sessionStorage.removeItem('userToken')
+	delete window.originData
+	router.push({
+		name: 'login',
+	})
+}
+
+const configComfirm = () => {
+	return new Promise(async resolve => {
+		const res = await limitRef.value.comfirm()
+		if (res.success) {
+			const configRes = await limitConfigRef.value.comfirm()
+			if (configRes.success) {
+				ElMessage.success('限额保存成功')
+				resolve({ success: true })
+			} else {
+				ElMessage.error(configRes.msg)
+				resolve({ success: false })
+			}
+		} else {
+			ElMessage.error(res.msg)
+			resolve({ success: false })
+		}
+	})
+}
+
 const comfirm = async () => {
-	const res = await limitRef.value.comfirm()
-	if (res.success) {
-		const res2 = await limitConfigRef.value.comfirm()
-		if (res2.success) {
-			ElMessage.success(res2.msg)
-			await initData({ username: sessionStorage.getItem('username') })
+	const res = await Promise.all([configComfirm(), typeRef.value.comfirm(), borrowRef.value.comfirm()])
+
+	if (res[0].success || res[1].success || res[2].success) {
+		// 重新获取数据
+		await initData({ username: sessionStorage.getItem('username') })
+
+		if (res[0].success) {
 			limitRef.value.init()
 			limitConfigRef.value.init()
-		} else {
-			ElMessage.error(res2.msg)
 		}
-	} else {
-		ElMessage.error(res.msg)
+		if (res[1].success) {
+			typeRef.value.init()
+		}
+		if (res[2].success) {
+			borrowRef.value.init()
+		}
 	}
 }
 </script>
@@ -103,6 +138,10 @@ const comfirm = async () => {
 .save-btn {
 	display: block;
 	width: 200px;
+}
+.logout-btn {
+	margin: 32px auto 0;
+	display: block;
 }
 </style>
 

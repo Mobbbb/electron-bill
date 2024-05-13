@@ -1,6 +1,6 @@
 <template>
 	<el-form :model="formData" ref="ruleFormRef" label-position="right" label-width="auto">
-		<span class="form-group-title">· 基础开销</span>
+		<span class="form-group-title">· 限额配置 - 基础开销</span>
 		<div class="data-lists-wrap">
 			<div class="data-lists-item" v-for="(item, index) in formData.base">
 				<el-form-item label="名称"
@@ -28,7 +28,7 @@
 			</div>
 			<div class="add-icon" @click="addList('base')"><el-icon><Plus /></el-icon></div>
 		</div>
-		<span class="form-group-title">· {{ configData.typeMap[HOUSE_ID] }}</span>
+		<span class="form-group-title">· 限额配置 - {{ configData.typeMap[HOUSE_ID] }}</span>
 		<div class="data-lists-wrap">
 			<div class="data-lists-item" v-for="(item, index) in formData.house">
 				<el-form-item label="名称" 
@@ -70,7 +70,7 @@
 			</div>
 			<div class="add-icon" @click="addList('house')"><el-icon><Plus /></el-icon></div>
 		</div>
-		<span class="form-group-title">· {{ configData.typeMap[CAR_ID] }}</span>
+		<span class="form-group-title">· 限额配置 - {{ configData.typeMap[CAR_ID] }}</span>
 		<div class="data-lists-wrap">
 			<div class="data-lists-item" v-for="(item, index) in formData.car">
 				<el-form-item label="名称"
@@ -161,9 +161,7 @@ const removeList = (key, index) => {
 const comfirm = async () => {
 	return new Promise(resolve => {
 		ruleFormRef.value.validate(async (valid, fields) => {
-			let resolveRes = {
-				success: false,
-			}
+			let resolveRes = { success: false }
 			if (valid) {
 				const params = {}
 				const limitConfigParams = {}
@@ -197,7 +195,7 @@ const comfirm = async () => {
 						})
 					})
 				}
-				
+
 				const res = await window.call.updateLimitConfig({
 					params,
 					originData: hasChanged ? originData : [],

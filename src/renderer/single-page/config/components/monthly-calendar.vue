@@ -85,7 +85,7 @@ export default {
     justify-content: space-between;
     margin: 0 6px;
     padding-bottom: 12px;
-    border-bottom: 1px solid #ebeef5;
+    /* border-bottom: 1px solid #ebeef5; */
 }
 .monthly-calendar-table td {
     vertical-align: top;
@@ -111,6 +111,6 @@ export default {
     padding: 8px;
 }
 .monthly-calendar__body {
-    padding-top: 20px;
+    padding-top: 0;
 }
 </style>

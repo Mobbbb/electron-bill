@@ -157,12 +157,16 @@ const confirmMonthEdit = () => {
 }
 
 const comfirm = async () => {
-	const res = await window.call.updateConfigData({
+	Object.keys(originLimitData.value).forEach(key => {
+		if (!originLimitData.value[key].length) {
+			delete originLimitData.value[key]
+		}
+	})
+	return await window.call.updateConfigData({
 		text: JSON.stringify(originLimitData.value),
 		fileName: 'limit.json',
 		username: sessionStorage.getItem('username')
 	})
-	return res
 }
 
 const init = () => {

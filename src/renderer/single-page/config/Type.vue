@@ -105,10 +105,10 @@ const handleInputConfirm = () => {
 }
 
 const getMaxId = () => {
-	return Math.max(...[...usedTypeArr.value, ...typeArr.value.map(item => item.key)].filter(item => !Number.isNaN(Number(item))))
+	return Math.max(...[...usedTypeArr.value, ...typeArr.value.map(item => item.value)].filter(item => !Number.isNaN(Number(item))))
 }
 
-window.comfirm = () => {
+const comfirm = async () => {
 	let hasChanged = false
 	const obj = {}
 	typeArr.value.forEach(item => {
@@ -126,12 +126,21 @@ window.comfirm = () => {
 	}
 
 	if (hasChanged) {
-		// TODO TEST
 		const res = await window.call.updateConfigData({
 			text: JSON.stringify(obj),
 			fileName: 'type.json',
 			username: sessionStorage.getItem('username')
 		})
+		if (res.success) {
+			ElMessage.success('类别保存成功')
+		} else {
+			ElMessage.error(res.msg)
+		}
+		return res
+	} else {
+		return {
+			success: false,
+		}
 	}
 }
 

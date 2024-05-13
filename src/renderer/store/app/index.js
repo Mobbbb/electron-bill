@@ -34,31 +34,7 @@ const app = {
             state.monthTotalYM = data
         },
         updateNewBillDataSavedStatus(state, status) {
-            // const dateY = data.date.slice(0, 4)
-            // const dateYM = data.date.slice(0, 7)
             state.newBillDataHasSaved = status
-            // const allMonthArr = [...state.billData.allMonthArr]
-            // if (!allMonthArr.includes(dateYM)) {
-            //     allMonthArr.push(dateYM)
-            //     allMonthArr.sort((a, b) => a > b ? 1 : -1)
-            //     state.billData.allMonthArr = getAllMonthBetweenGap(allMonthArr[0], allMonthArr[allMonthArr.length - 1])
-            // }
-            // if (state.billData.dateGroupY[dateY]) {
-            //     state.billData.dateGroupY[dateY].push(data)
-            // } else {
-            //     state.billData.dateGroupY[dateY] = [data]
-            // }
-            // if (state.billData.dateGroupYM[dateYM]) {
-            //     state.billData.dateGroupYM[dateYM].push(data)
-            // } else {
-            //     state.billData.dateGroupYM[dateYM] = [data]
-            // }
-            // if (dateYM > state.billData.latestDate) {
-            //     state.billData.latestDate = dateYM
-            // }
-            // if (dateYM < state.billData.oldestDate) {
-            //     state.billData.oldestDate = dateYM
-            // }
         },
         setConfigData(state, data) {
             state.configData = data

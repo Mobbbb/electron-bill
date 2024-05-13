@@ -59,11 +59,10 @@ if (localStorage.getItem('bill-username')) {
 }
 
 const validatePass1 = (rule, value, callback) => {
-	if (!value) callback(new Error('请填写账户'))
-	if (checkStatus.value) {
-		callback()
+	if (!value) {
+		callback(new Error('请填写账户'))
 	} else {
-		callback(new Error('账户或密码错误'))
+		callback()
 	}
 }
 
@@ -124,8 +123,7 @@ const handleSubmit = async () => {
 				})
 			}).catch(() => {})
 		} else if (valid && recoverStatus) {
-			// todo
-			console.log('备份')
+			// TODO 使用备份文件恢复数据
 		}
 	})
 }

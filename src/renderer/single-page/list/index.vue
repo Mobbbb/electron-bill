@@ -37,7 +37,7 @@
 			class="gc-pagination" />
     </el-card>
 	<el-dialog v-model="showImportModal" title="导入" width="50%" :close-on-click-modal="false">
-		<el-input v-model="outsideData" :rows="13" type="textarea" />
+		<el-input v-model="outsideData" :rows="13" type="textarea" :placeholder="placeholder" />
 		<template #footer>
 			<el-button size="small" type="primary" @click="importData">导入</el-button>
 		</template>
@@ -62,6 +62,18 @@ const outsideData = ref('')
 const tableData = ref([])
 const currentPage = ref(1)
 const pageSize = 20
+
+const placeholder = `示例：
+[{
+	"date": "2024-01-01",
+	"type": "1",
+	"label": "示例文本",
+	"list": [{
+		"num": 0,
+		"label": "示例文本"
+    }]
+}]
+`
 
 const showListData = computed(() => {
 	const startNum = (currentPage.value - 1) * pageSize
@@ -95,14 +107,47 @@ const copyData = () => {
 const importData = () => {
 	try {
 		const data = JSON.parse(outsideData.value)
-		window.originData = data
-		initListData()
-		initBillData(JSON.parse(outsideData.value))
-		updateNewBillDataSavedStatus(false)
-		ElMessage.success('导入成功！')
-		showImportModal.value = false
+		if (data instanceof Array && data.length) {
+			let errorMsg = false
+			for (let i = 0; i < data.length; i++) {
+				if (typeof data[i].date !== 'string') {
+					errorMsg = 'Array.date 必须为字符串类型'
+					break
+				} else if (typeof data[i].type !== 'string') {
+					errorMsg = 'Array.type 必须为字符串类型'
+					break
+				} else if (typeof data[i].label !== 'string') {
+					errorMsg = 'Array.label 必须为字符串类型'
+					break
+				} else if (!(data[i].list instanceof Array)) {
+					errorMsg = 'Array.list 必须为数组类型'
+					break
+				} else if (data[i].list instanceof Array) {
+					for (let j = 0; j < data[i].list.length; j++) {
+						if (typeof data[i].list[j].num !== 'number') {
+							errorMsg = 'Array.list.num 必须为数字类型'
+							break
+						}
+					}
+					if (errorMsg) break
+				}
+			}
+			if (errorMsg) {
+				ElMessage.error(errorMsg)
+			} else {
+				window.originData = window.originData.concat(data)
+				window.originData.sort((a, b) => b.date > a.date ? 1 : -1)
+				initListData()
+				initBillData(JSON.parse(outsideData.value))
+				updateNewBillDataSavedStatus(false)
+				ElMessage.success('导入成功！')
+				showImportModal.value = false
+			}
+		} else {
+			ElMessage.error('必须为数组类型数据！')
+		}
 	} catch(e) {
-		ElMessage.error('非法数据！')
+		ElMessage.error('非标准JSON数据！')
 	}
 }
 
