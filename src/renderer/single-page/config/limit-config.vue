@@ -1,6 +1,6 @@
 <template>
 	<el-form :model="formData" ref="ruleFormRef" label-position="right" label-width="auto">
-		<span class="form-group-title">· 限额配置 - 基础开销</span>
+		<span class="form-group-title">· 限额设置 - {{ WORD_MAP.base }}</span>
 		<div class="data-lists-wrap">
 			<div class="data-lists-item" v-for="(item, index) in formData.base">
 				<el-form-item label="名称"
@@ -28,7 +28,7 @@
 			</div>
 			<div class="add-icon" @click="addList('base')"><el-icon><Plus /></el-icon></div>
 		</div>
-		<span class="form-group-title">· 限额配置 - {{ configData.typeMap[HOUSE_ID] }}</span>
+		<span class="form-group-title">· 设置 - {{ configData.typeMap[WORD_MAP.house] }}</span>
 		<div class="data-lists-wrap">
 			<div class="data-lists-item" v-for="(item, index) in formData.house">
 				<el-form-item label="名称" 
@@ -70,7 +70,7 @@
 			</div>
 			<div class="add-icon" @click="addList('house')"><el-icon><Plus /></el-icon></div>
 		</div>
-		<span class="form-group-title">· 限额配置 - {{ configData.typeMap[CAR_ID] }}</span>
+		<span class="form-group-title">· 设置 - {{ configData.typeMap[WORD_MAP.car] }}</span>
 		<div class="data-lists-wrap">
 			<div class="data-lists-item" v-for="(item, index) in formData.car">
 				<el-form-item label="名称"
@@ -121,7 +121,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
 import { Minus, Plus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
-import { HOUSE_ID, CAR_ID } from '@renderer/config'
+import { WORD_MAP } from '@renderer/config'
 
 const route = useRoute()
 const router = useRouter()
@@ -161,7 +161,10 @@ const removeList = (key, index) => {
 const comfirm = async () => {
 	return new Promise(resolve => {
 		ruleFormRef.value.validate(async (valid, fields) => {
-			let resolveRes = { success: false }
+			let resolveRes = {
+				success: false,
+				msg: '限额校验未通过',
+			}
 			if (valid) {
 				const params = {}
 				const limitConfigParams = {}

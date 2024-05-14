@@ -28,7 +28,7 @@
 			@keyup.enter="handleInputConfirm"
 			@blur="handleInputConfirm"/>
 		<el-button v-else class="button-new-tag" size="small" @click="showInput">
-			+ New Tag
+			+ 添加类别
 		</el-button>
 	</div>
 </template>

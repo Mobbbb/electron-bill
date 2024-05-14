@@ -2,13 +2,12 @@
 	<div class="block"></div>
 	<el-card class="setting">
 		<Back></Back>
-		<el-form :rules="rules" :model="formData" ref="ruleFormRef" label-position="right" 
-			label-width="auto"
-			style="max-width: 320px; margin: 20px auto;padding-right: 20px;">
+		<el-form :rules="rules" :model="formData" ref="ruleFormRef" label-position="right" label-width="auto" class="setting-form">
 			<el-form-item label="日期" prop="date">
 				<el-date-picker
 					placeholder="请选择日期"
-					:editable="false" :clearable="false"
+					:editable="false"
+					:clearable="false"
 					type="date"
 					v-model="formData.date"
 					style="width: 100%;"
@@ -25,9 +24,7 @@
 				</el-select>
 			</el-form-item>
 			<el-form-item label="一级名称" prop="label">
-				<el-input
-				 	placeholder="请输入名称"
-					v-model="formData.label" />
+				<el-input placeholder="请输入名称" v-model="formData.label" />
 			</el-form-item>
 		</el-form>
 		<div class="data-lists-wrap">
@@ -132,15 +129,10 @@
 import { ref, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStore } from 'vuex'
-import { HOUSE_ID, CAR_ID, ALL_ID } from '@renderer/config'
+import { WORD_MAP, ALL_ID, HOUSE_ID, CAR_ID } from '@renderer/config'
 import { Delete, Plus, Minus } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import Back from '../components/Back.vue'
-
-const WORD_MAP = {
-	'house': HOUSE_ID,
-	'car': CAR_ID,
-}
 
 const WORD_MAP_EN = {}
 Object.keys(WORD_MAP).forEach(key => WORD_MAP_EN[WORD_MAP[key]] = key)
@@ -152,7 +144,7 @@ const store = new useStore()
 const formData = reactive({
 	label: '',
 	date: new Date(+new Date() + 28800000).toISOString().split('T')[0],
-	type: '1',
+	type: '12',
 })
 
 const dynamicFormData = reactive({
@@ -163,7 +155,7 @@ const dynamicFormData = reactive({
 })
 
 const rules = reactive({
-	label: [{ required: true, message: '请填写名称', trigger: 'change', }],
+	label: [{ required: true, message: '请填写名称', trigger: 'blur', }],
 	date: [{ required: true, message: '', trigger: 'change', }],
 	type: [{ required: true, message: '', trigger: 'change', }],
 })
@@ -281,6 +273,11 @@ const comfirm = async () => {
 					initBillData(JSON.parse(JSON.stringify(window.originData)))
 					updateNewBillDataSavedStatus(false)
 					ElMessage.success('录入成功')
+					formData.label = ''
+					dynamicFormData.listData = [{
+						label: '',
+						dataType: 0,
+					}]
 				}
 			})
 		}
@@ -295,6 +292,11 @@ const comfirm = async () => {
 }
 .setting {
 	margin: 0 20px;
+}
+.setting-form {
+	max-width: 320px;
+	margin: 20px auto;
+	padding-right: 20px;
 }
 .data-lists-wrap {
 	display: flex;

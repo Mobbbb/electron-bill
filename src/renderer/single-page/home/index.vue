@@ -32,7 +32,7 @@
 </template>
 
 <script setup>
-import { computed, ref, reactive, onMounted } from 'vue'
+import { computed, ref, reactive } from 'vue'
 import { useStore } from 'vuex'
 import { Tools, Edit, List } from '@element-plus/icons-vue'
 import { useRouter } from 'vue-router'

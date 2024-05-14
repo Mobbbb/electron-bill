@@ -138,7 +138,7 @@ const importData = () => {
 				window.originData = window.originData.concat(data)
 				window.originData.sort((a, b) => b.date > a.date ? 1 : -1)
 				initListData()
-				initBillData(JSON.parse(outsideData.value))
+				initBillData(JSON.parse(JSON.stringify(window.originData)))
 				updateNewBillDataSavedStatus(false)
 				ElMessage.success('导入成功！')
 				showImportModal.value = false

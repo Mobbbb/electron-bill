@@ -4,8 +4,10 @@ import { encrypto, decrypto } from './utils'
 import { typeJson } from './config'
 const fs = require('fs')
 
+const ROOT_DATA_FILE = 'AppData'
+
 function getFileData({ username, password, fileName }) {
-	const filePath = `./AppData/${username}/${fileName}`
+	const filePath = `./${ROOT_DATA_FILE}/${username}/${fileName}`
 	let lists = []
 	try {
 		lists = fs.readFileSync(filePath).toString()
@@ -63,19 +65,22 @@ export default (mainWindow) => {
 	ipcMain.handle('initAppData', async (event, { username, password, params }) => {
 		const { limitConfig, limitData } = params
 		try {
-			if (!fs.existsSync(`./AppData/${username}`)) {
-				fs.mkdirSync(`./AppData/${username}`)
+			if (!fs.existsSync(`./${ROOT_DATA_FILE}`)) {
+				fs.mkdirSync(`./${ROOT_DATA_FILE}`)
 			}
-			if (!fs.existsSync(`./AppData/${username}/limitConfig`)) {
-				fs.mkdirSync(`./AppData/${username}/limitConfig`)
+			if (!fs.existsSync(`./${ROOT_DATA_FILE}/${username}`)) {
+				fs.mkdirSync(`./${ROOT_DATA_FILE}/${username}`)
+			}
+			if (!fs.existsSync(`./${ROOT_DATA_FILE}/${username}/limitConfig`)) {
+				fs.mkdirSync(`./${ROOT_DATA_FILE}/${username}/limitConfig`)
 			}
 			Object.keys(limitConfig).forEach(key => {
-				fs.writeFileSync(`./AppData/${username}/limitConfig/${key}.json`, JSON.stringify(limitConfig[key]))
+				fs.writeFileSync(`./${ROOT_DATA_FILE}/${username}/limitConfig/${key}.json`, JSON.stringify(limitConfig[key]))
 			})
-			fs.writeFileSync(`./AppData/${username}/borrow.json`, '{}')
-			fs.writeFileSync(`./AppData/${username}/data`, encrypto('[]', password))
-			fs.writeFileSync(`./AppData/${username}/limit.json`, JSON.stringify(limitData))
-			fs.writeFileSync(`./AppData/${username}/type.json`, JSON.stringify(typeJson))
+			fs.writeFileSync(`./${ROOT_DATA_FILE}/${username}/borrow.json`, '{}')
+			fs.writeFileSync(`./${ROOT_DATA_FILE}/${username}/data`, encrypto('[]', password))
+			fs.writeFileSync(`./${ROOT_DATA_FILE}/${username}/limit.json`, JSON.stringify(limitData))
+			fs.writeFileSync(`./${ROOT_DATA_FILE}/${username}/type.json`, JSON.stringify(typeJson))
 
 			return {
 				data: null,
@@ -84,7 +89,7 @@ export default (mainWindow) => {
 				msg: '',
 			}
 		} catch (e) {
-			fs.rmdirSync(`./AppData/${username}`, { recursive: true })
+			fs.rmdirSync(`./${ROOT_DATA_FILE}/${username}`, { recursive: true })
 			return {
 				data: null,
 				success: false,
@@ -97,7 +102,7 @@ export default (mainWindow) => {
 	// 获取limitConfig文件
 	ipcMain.handle('getLimitConfig', async (event, username) => {
 		let lists = {}
-		const filePath = `./AppData/${username}/limitConfig/`
+		const filePath = `./${ROOT_DATA_FILE}/${username}/limitConfig/`
 		try {
 			const files = fs.readdirSync(filePath)
 			files.forEach(async file => {
@@ -134,7 +139,7 @@ export default (mainWindow) => {
 		originData = [],
 		limitConfigParams = {}
 	}) => {
-		const path = `./AppData/${username}/limitConfig/`
+		const path = `./${ROOT_DATA_FILE}/${username}/limitConfig/`
 
 		const res = getFileData({ username, fileName: 'limit.json' })
 		const limitData = res.data
@@ -172,12 +177,12 @@ export default (mainWindow) => {
 					})
 					limitData[key] = newArr
 				})
-				const limitPath = `./AppData/${username}/limit.json`
+				const limitPath = `./${ROOT_DATA_FILE}/${username}/limit.json`
 				fs.renameSync(limitPath, `${limitPath}.temp`) // 将文件转为临时文件
 				fs.writeFileSync(limitPath, JSON.stringify(limitData)) // 写入新文件
 
 				if (originData.length) {
-					const dataPath = `./AppData/${username}/data`
+					const dataPath = `./${ROOT_DATA_FILE}/${username}/data`
 					let json = JSON.stringify(originData)
 					json = encrypto(json, password)
 					fs.renameSync(dataPath, `${dataPath}.temp`) // 将旧文件转为临时文件
@@ -191,13 +196,13 @@ export default (mainWindow) => {
 			}
 		} catch (e) {
 			// limit.json恢复相关
-			const limitPath = `./AppData/${username}/limit.json`
+			const limitPath = `./${ROOT_DATA_FILE}/${username}/limit.json`
 			if (fs.existsSync(`${limitPath}.temp`)) {
 				fs.renameSync(`${limitPath}.temp`, limitPath) // 使用临时文件恢复旧文件
 			}
 
 			// data恢复相关
-			const dataPath = `./AppData/${username}/data`
+			const dataPath = `./${ROOT_DATA_FILE}/${username}/data`
 			if (fs.existsSync(`${dataPath}.temp`)) {
 				fs.renameSync(`${dataPath}.temp`, dataPath) // 使用临时文件恢复旧文件
 			}
@@ -245,7 +250,7 @@ export default (mainWindow) => {
 
 	// 更新配置文件
 	ipcMain.handle('updateConfigData', async (event, { username, fileName, text }) => {
-		const filePath = `./AppData/${username}/${fileName}`
+		const filePath = `./${ROOT_DATA_FILE}/${username}/${fileName}`
 
 		try {
 			fs.renameSync(filePath, `${filePath}.temp`) // 将文件转为临时文件
@@ -293,7 +298,7 @@ export default (mainWindow) => {
 
 	// 更新data文件
 	ipcMain.handle('updateUserData', async (event, { username, password, fileName, text }) => {
-		const filePath = `./AppData/${username}/${fileName}`
+		const filePath = `./${ROOT_DATA_FILE}/${username}/${fileName}`
 		let json = JSON.stringify(text)
 
 		try {

@@ -41,7 +41,10 @@ const borrowRef = ref()
 const usedOriginLimitData = ref([])
 const oldNameList = ref([])
 
+const newBillDataHasSaved = computed(() => store.state.app.newBillDataHasSaved)
+
 const initData = (value) => store.dispatch('app/initData', value)
+const updateNewBillDataSavedStatus = (value) => store.commit('app/updateNewBillDataSavedStatus', value)
 
 const updateOriginLimitData = (data) => {
 	usedOriginLimitData.value = []
@@ -84,8 +87,23 @@ const configComfirm = () => {
 }
 
 const comfirm = async () => {
-	const res = await Promise.all([configComfirm(), typeRef.value.comfirm(), borrowRef.value.comfirm()])
+	if (!newBillDataHasSaved.value) { // 保存未保存的新数据
+		const res = await window.call.updateUserData({
+			username: sessionStorage.getItem('username'),
+			password: sessionStorage.getItem('userToken'),
+			fileName: 'data',
+			text: window.originData,
+		})
+		if (res.success) {
+			ElMessage.success('账单数据保存成功')
+			updateNewBillDataSavedStatus(true)
+		} else {
+			ElMessage.error(res.msg)
+			return
+		}
+	}
 
+	const res = await Promise.all([configComfirm(), typeRef.value.comfirm(), borrowRef.value.comfirm()])
 	if (res[0].success || res[1].success || res[2].success) {
 		// 重新获取数据
 		await initData({ username: sessionStorage.getItem('username') })

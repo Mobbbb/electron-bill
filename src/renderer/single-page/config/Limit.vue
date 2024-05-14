@@ -1,6 +1,6 @@
 <template>
 	<div>
-		<span class="form-group-title" style="margin-top: 0;">· 每月限额设置</span>
+		<span class="form-group-title" style="margin-top: 0;">· 每月限额配置</span>
 		<div class="title-wrap">
 			<div class="date-picker-wrap">
 				<el-button  :icon="DArrowLeft" 
@@ -74,14 +74,8 @@ import { useStore } from 'vuex'
 import { Minus, Plus, DArrowLeft, DArrowRight  } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { dateFormat } from 'umob'
-import { HOUSE_ID, CAR_ID } from '@renderer/config'
+import { WORD_MAP } from '@renderer/config'
 import MonthlyCalendar from './components/monthly-calendar.vue'
-
-const WORD_MAP = {
-	'house': HOUSE_ID,
-	'car': CAR_ID,
-	'base': '基础',
-}
 
 const props = defineProps(['oldNameList'])
 const emit = defineEmits(['update:originLimitData'])
